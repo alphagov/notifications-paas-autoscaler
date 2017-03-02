@@ -1,0 +1,21 @@
+---
+
+applications:
+  - name: notify-paas-autoscaler
+    buildpack: python_buildpack
+    command: ./run.sh python main.py
+    health-check-type: none
+    no-route: true
+    instances: 1
+    memory: 128M
+    env:
+      AWS_REGION: eu-west-1
+      SCHEDULE_INTERVAL: 60
+      CF_API_URL: https://api.cloud.service.gov.uk
+      CF_ORG: govuk-notify
+      CF_SPACE: <%= ENV.fetch("CF_SPACE") %>
+      SQS_QUEUE_PREFIX: <%= ENV.fetch("CF_SPACE") %>
+      PYTHONUNBUFFERED: 1
+      CF_MIN_INSTANCE_COUNT: <%= ENV.fetch("CF_MIN_INSTANCE_COUNT", "1") %>
+    services:
+      - notify-paas-autoscaler

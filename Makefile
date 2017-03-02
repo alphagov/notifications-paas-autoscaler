@@ -23,4 +23,6 @@ production:
 	@true
 
 cf-push:
+	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
+	cf target -s ${CF_SPACE}
 	cf push -f <(make generate-manifest)

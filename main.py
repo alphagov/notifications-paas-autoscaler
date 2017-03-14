@@ -207,7 +207,6 @@ class AutoScaler:
         print('Org:            {}'.format(self.cf_org))
         print('Space:          {}'.format(self.cf_space))
 
-        self.run_task()
         self.schedule()
         while True:
             self.scheduler.run()

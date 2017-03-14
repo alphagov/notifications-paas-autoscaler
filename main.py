@@ -77,13 +77,16 @@ class AutoScaler:
 
         return instances
 
-    def get_sqs_url(self, name):
-        return "https://sqs.{}.amazonaws.com/{}/{}{}".format(
-            self.aws_region, self.aws_account_id, self.sqs_queue_prefix, name)
+    def get_sqs_queue_name(self, name):
+        return "{}{}".format(self.sqs_queue_prefix, name)
+
+    def get_sqs_queue_url(self, name):
+        return "https://sqs.{}.amazonaws.com/{}/{}".format(
+            self.aws_region, self.aws_account_id, name)
 
     def get_sqs_message_count(self, name):
         response = self.sqs_client.get_queue_attributes(
-            QueueUrl=self.get_sqs_url("db-email"),
+            QueueUrl=self.get_sqs_queue_url(name),
             AttributeNames=['ApproximateNumberOfMessages'])
         result = int(response['Attributes']['ApproximateNumberOfMessages'])
         print('Messages in {}: {}'.format(name, result))
@@ -92,7 +95,7 @@ class AutoScaler:
     def get_highest_message_count(self, queues):
         result = 0
         for queue in queues:
-            result = max(result, self.get_sqs_message_count(queue))
+            result = max(result, self.get_sqs_message_count(self.get_sqs_queue_name(queue)))
         return result
 
     def scale_app(self, app, paas_app):
@@ -140,5 +143,6 @@ min_instance_count = int(os.environ['CF_MIN_INSTANCE_COUNT'])
 apps = []
 apps.append(App('notify-delivery-worker-database', ['db-sms','db-email','db-letter'], 2000, min_instance_count, 20))
 apps.append(App('notify-delivery-worker', ['send-sms','send-email'], 2000, min_instance_count, 20))
+apps.append(App('notify-delivery-worker-research', ['research-mode'], 2000, min_instance_count, 20))
 autoscaler = AutoScaler(apps)
 autoscaler.run()

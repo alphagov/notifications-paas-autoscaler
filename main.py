@@ -5,9 +5,11 @@ import math
 import sched
 import time
 import random
+import datetime
+from functools import reduce
 from cloudfoundry_client.client import CloudFoundryClient
 
-class App:
+class SQSApp:
     def __init__(self, name, queues, messages_per_instance, min_instance_count, max_instance_count):
         self.name = name
         self.queues = queues
@@ -15,9 +17,18 @@ class App:
         self.min_instance_count = min_instance_count
         self.max_instance_count = max_instance_count
 
+class ELBApp:
+    def __init__(self, name, load_balancer_name, request_per_instance, min_instance_count, max_instance_count):
+        self.name = name
+        self.load_balancer_name = load_balancer_name
+        self.request_per_instance = request_per_instance
+        self.min_instance_count = min_instance_count
+        self.max_instance_count = max_instance_count
+
 class AutoScaler:
-    def __init__(self, apps):
-        self.apps = apps
+    def __init__(self, sqs_apps, elb_apps):
+        self.sqs_apps = sqs_apps
+        self.elb_apps = elb_apps
 
         self.schedule_interval = int(os.environ['SCHEDULE_INTERVAL']) + 0.0
         self.schedule_delay = random.random() * self.schedule_interval
@@ -28,6 +39,8 @@ class AutoScaler:
 
         self.sqs_client = boto3.client('sqs', region_name=self.aws_region)
         self.sqs_queue_prefix = os.environ['SQS_QUEUE_PREFIX']
+
+        self.cloudwatch_client = boto3.client('cloudwatch', region_name=self.aws_region)
 
         self.cf_username = os.environ['CF_USERNAME']
         self.cf_password = os.environ['CF_PASSWORD']
@@ -98,16 +111,69 @@ class AutoScaler:
             result = max(result, self.get_sqs_message_count(self.get_sqs_queue_name(queue)))
         return result
 
-    def scale_app(self, app, paas_app):
+    def scale_sqs_app(self, app, paas_app):
         print('Processing {}'.format(app.name))
         highest_message_count = self.get_highest_message_count(app.queues)
         print('Highest message count: {}'.format(highest_message_count))
         desired_instance_count = int(max(app.min_instance_count, math.ceil(highest_message_count / float(app.messages_per_instance))))
         desired_instance_count = min(desired_instance_count, app.max_instance_count)
-        print('Current/desired instance count: {}/{}'.format(paas_app['instances'], desired_instance_count))
 
-        if paas_app['instances'] != desired_instance_count:
-            print('Scaling {} from {} to {}'.format(app.name, paas_app['instances'], desired_instance_count))
+        self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
+
+    def get_load_balancer_request_counts(self, load_balancer_name):
+        start_time = datetime.datetime.now() - datetime.timedelta(minutes=5)
+        end_time = datetime.datetime.now()
+        result = self.cloudwatch_client.get_metric_statistics(
+            Namespace='AWS/ELB',
+            MetricName='RequestCount',
+            Dimensions=[
+                {
+                    'Name': 'LoadBalancerName',
+                    'Value': load_balancer_name
+                },
+            ],
+            StartTime=start_time,
+            EndTime=end_time,
+            Period=60,
+            Statistics=['Sum'],
+            Unit='Count'
+        )
+        datapoints = result['Datapoints']
+        datapoints = sorted(datapoints,key=lambda x: x['Timestamp'])
+        return [row['Sum'] for row in datapoints]
+
+    def scale_elb_app(self, app, paas_app):
+        print('Processing {}'.format(app.name))
+        request_counts = self.get_load_balancer_request_counts(app.load_balancer_name)
+        if len(request_counts) == 0:
+            request_counts = [0]
+        print('Request counts (5 min): {}'.format(request_counts))
+
+        avg_request_count = reduce(lambda x, y: x + y, request_counts) / len(request_counts)
+        print('Average request count (5 min): {}'.format(avg_request_count))
+
+        # For upscaling we use only the last request count
+        desired_upscale_instance_count = int(min(math.ceil(request_counts[-1] / float(app.request_per_instance)), app.max_instance_count))
+        print('Target for upscale: {}'.format(desired_upscale_instance_count))
+
+        # For downscaling we use the 5 minute average
+        desired_downscale_instance_count = int(max(math.ceil(avg_request_count / float(app.request_per_instance)), app.min_instance_count))
+        print('Target for downscale: {}'.format(desired_downscale_instance_count))
+
+        # Upscaling takes precedence
+        if paas_app['instances'] < desired_upscale_instance_count:
+            desired_instance_count = desired_upscale_instance_count
+        elif paas_app['instances'] > desired_downscale_instance_count:
+            desired_instance_count = desired_downscale_instance_count
+        else:
+            desired_instance_count = paas_app['instances']
+
+        self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
+
+    def scale_paas_apps(self, app, paas_app, current_instance_count, desired_instance_count):
+        print('Current/desired instance count: {}/{}'.format(current_instance_count, desired_instance_count))
+        if current_instance_count != desired_instance_count:
+            print('Scaling {} from {} to {}'.format(app.name, current_instance_count, desired_instance_count))
             try:
                 self.cf_client.apps._update(paas_app['guid'], {'instances': desired_instance_count})
             except BaseException as e:
@@ -121,11 +187,17 @@ class AutoScaler:
     def run_task(self):
         paas_apps = self.get_paas_apps()
 
-        for app in self.apps:
+        for app in self.sqs_apps:
             if not app.name in paas_apps:
                 print("Application {} does not exist".format(app.name))
                 continue
-            self.scale_app(app, paas_apps[app.name])
+            self.scale_sqs_app(app, paas_apps[app.name])
+
+        for app in self.elb_apps:
+            if not app.name in paas_apps:
+                print("Application {} does not exist".format(app.name))
+                continue
+            self.scale_elb_app(app, paas_apps[app.name])
 
         self.schedule()
 
@@ -135,15 +207,20 @@ class AutoScaler:
         print('Org:            {}'.format(self.cf_org))
         print('Space:          {}'.format(self.cf_space))
 
+        self.run_task()
         self.schedule()
         while True:
             self.scheduler.run()
 
 min_instance_count = int(os.environ['CF_MIN_INSTANCE_COUNT'])
 
-apps = []
-apps.append(App('notify-delivery-worker-database', ['db-sms','db-email','db-letter'], 2000, min_instance_count, 20))
-apps.append(App('notify-delivery-worker', ['send-sms','send-email'], 2000, min_instance_count, 20))
-apps.append(App('notify-delivery-worker-research', ['research-mode'], 2000, min_instance_count, 20))
-autoscaler = AutoScaler(apps)
+sqs_apps = []
+sqs_apps.append(SQSApp('notify-delivery-worker-database', ['db-sms','db-email','db-letter'], 2000, min_instance_count, 20))
+sqs_apps.append(SQSApp('notify-delivery-worker', ['send-sms','send-email'], 2000, min_instance_count, 20))
+sqs_apps.append(SQSApp('notify-delivery-worker-research', ['research-mode'], 2000, min_instance_count, 20))
+
+elb_apps = []
+elb_apps.append(ELBApp('notify-api', 'notify-paas-proxy', 1500, min_instance_count, 20))
+
+autoscaler = AutoScaler(sqs_apps, elb_apps)
 autoscaler.run()

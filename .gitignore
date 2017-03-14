@@ -1,2 +1,4 @@
 *.pyc
 manifest.yml
+venv
+.envrc

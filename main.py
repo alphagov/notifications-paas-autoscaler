@@ -103,6 +103,7 @@ class AutoScaler:
         highest_message_count = self.get_highest_message_count(app.queues)
         print('Highest message count: {}'.format(highest_message_count))
         desired_instance_count = int(max(app.min_instance_count, math.ceil(highest_message_count / float(app.messages_per_instance))))
+        desired_instance_count = min(desired_instance_count, app.max_instance_count)
         print('Current/desired instance count: {}/{}'.format(paas_app['instances'], desired_instance_count))
 
         if paas_app['instances'] != desired_instance_count:

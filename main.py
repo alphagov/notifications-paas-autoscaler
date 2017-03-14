@@ -115,8 +115,7 @@ class AutoScaler:
         print('Processing {}'.format(app.name))
         highest_message_count = self.get_highest_message_count(app.queues)
         print('Highest message count: {}'.format(highest_message_count))
-        desired_instance_count = int(max(app.min_instance_count, math.ceil(highest_message_count / float(app.messages_per_instance))))
-        desired_instance_count = min(desired_instance_count, app.max_instance_count)
+        desired_instance_count = int(math.ceil(highest_message_count / float(app.messages_per_instance)))
 
         self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
 
@@ -149,28 +148,22 @@ class AutoScaler:
             request_counts = [0]
         print('Request counts (5 min): {}'.format(request_counts))
 
-        avg_request_count = reduce(lambda x, y: x + y, request_counts) / len(request_counts)
-        print('Average request count (5 min): {}'.format(avg_request_count))
+        # We make sure we keep the highest instance count for 5 minutes
+        highest_request_count = max(request_counts)
+        print('Highest request count (5 min): {}'.format(highest_request_count))
 
-        # For upscaling we use only the last request count
-        desired_upscale_instance_count = int(min(math.ceil(request_counts[-1] / float(app.request_per_instance)), app.max_instance_count))
-        print('Target for upscale: {}'.format(desired_upscale_instance_count))
-
-        # For downscaling we use the 5 minute average
-        desired_downscale_instance_count = int(max(math.ceil(avg_request_count / float(app.request_per_instance)), app.min_instance_count))
-        print('Target for downscale: {}'.format(desired_downscale_instance_count))
-
-        # Upscaling takes precedence
-        if paas_app['instances'] < desired_upscale_instance_count:
-            desired_instance_count = desired_upscale_instance_count
-        elif paas_app['instances'] > desired_downscale_instance_count:
-            desired_instance_count = desired_downscale_instance_count
-        else:
-            desired_instance_count = paas_app['instances']
+        desired_instance_count = int(math.ceil(highest_request_count / float(app.request_per_instance)))
 
         self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
 
     def scale_paas_apps(self, app, paas_app, current_instance_count, desired_instance_count):
+        desired_instance_count = min(app.max_instance_count, desired_instance_count)
+        desired_instance_count = max(app.min_instance_count, desired_instance_count)
+
+        # Make sure we don't remove more than 2 instances at a time
+        if desired_instance_count < current_instance_count and current_instance_count - desired_instance_count > 2:
+            desired_instance_count = current_instance_count - 2
+
         print('Current/desired instance count: {}/{}'.format(current_instance_count, desired_instance_count))
         if current_instance_count != desired_instance_count:
             print('Scaling {} from {} to {}'.format(app.name, current_instance_count, desired_instance_count))

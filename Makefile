@@ -10,11 +10,10 @@ venv: venv/bin/activate ## Create virtualenv if it does not exist
 
 venv/bin/activate:
 	test -d venv || virtualenv venv -p python3
-	. venv/bin/activate && pip install pip-accel
 
 .PHONY: dependencies
 dependencies: venv ## Install build dependencies
-	. venv/bin/activate && pip install -r requirements.txt
+	. venv/bin/activate && pip3 install -r requirements.txt
 
 generate-manifest:
 	@erb manifest.yml.erb

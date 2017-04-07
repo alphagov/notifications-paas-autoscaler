@@ -175,6 +175,7 @@ class AutoScaler:
     def schedule(self):
         current_time = time.time()
         run_at = current_time + self.schedule_interval - ((current_time - self.schedule_delay) % self.schedule_interval)
+        print('Next run time {}'.format(str(run_at)))
         self.scheduler.enterabs(run_at, 1, self.run_task)
 
     def run_task(self):
@@ -207,10 +208,11 @@ class AutoScaler:
 min_instance_count = int(os.environ['CF_MIN_INSTANCE_COUNT'])
 
 sqs_apps = []
-sqs_apps.append(SQSApp('notify-delivery-worker-database', ['db-sms','db-email','db-letter'], 2000, min_instance_count, 20))
-sqs_apps.append(SQSApp('notify-delivery-worker', ['notify', 'retry', 'process-job', 'periodic'], 2000, min_instance_count, 20))
-sqs_apps.append(SQSApp('notify-delivery-worker-sender', ['send-sms','send-email'], 2000, min_instance_count, 20))
-sqs_apps.append(SQSApp('notify-delivery-worker-research', ['research-mode'], 2000, min_instance_count, 20))
+sqs_apps.append(SQSApp('notify-delivery-worker-database', ['db-sms','db-email','db-letter'], 500, min_instance_count, 20))
+sqs_apps.append(SQSApp('notify-delivery-worker', ['notify', 'retry', 'process-job', 'periodic'], 500, min_instance_count, 20))
+sqs_apps.append(SQSApp('notify-delivery-worker-sender', ['send-sms','send-email'], 500, min_instance_count, 20))
+sqs_apps.append(SQSApp('notify-delivery-worker-research', ['research-mode'], 500, min_instance_count, 20))
+sqs_apps.append(SQSApp('notify-delivery-worker-priority', ['priority'], 500, min_instance_count, 20))
 
 elb_apps = []
 elb_apps.append(ELBApp('notify-api', 'notify-paas-proxy', 1500, min_instance_count, 20))

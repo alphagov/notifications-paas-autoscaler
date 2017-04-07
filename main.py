@@ -154,15 +154,17 @@ class AutoScaler:
 
         desired_instance_count = int(math.ceil(highest_request_count / float(app.request_per_instance)))
 
+        # passing 0 as highest request count to always do downscale on API.
+        # on SQS based autoscaling we down scale when we get below a 1000 messages
         self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
 
     def scale_paas_apps(self, app, paas_app, current_instance_count, desired_instance_count):
         desired_instance_count = min(app.max_instance_count, desired_instance_count)
         desired_instance_count = max(app.min_instance_count, desired_instance_count)
 
-        # Make sure we don't remove more than 2 instances at a time
+        # Make sure we don't remove more than 1 instance at a time, and only downscale when under 1000 messages
         if desired_instance_count < current_instance_count and current_instance_count - desired_instance_count > 2:
-            desired_instance_count = current_instance_count - 2
+            desired_instance_count = current_instance_count - 1
 
         print('Current/desired instance count: {}/{}'.format(current_instance_count, desired_instance_count))
         if current_instance_count != desired_instance_count:
@@ -208,11 +210,11 @@ class AutoScaler:
 min_instance_count = int(os.environ['CF_MIN_INSTANCE_COUNT'])
 
 sqs_apps = []
-sqs_apps.append(SQSApp('notify-delivery-worker-database', ['db-sms','db-email','db-letter'], 500, min_instance_count, 20))
-sqs_apps.append(SQSApp('notify-delivery-worker', ['notify', 'retry', 'process-job', 'periodic'], 500, min_instance_count, 20))
-sqs_apps.append(SQSApp('notify-delivery-worker-sender', ['send-sms','send-email'], 500, min_instance_count, 20))
-sqs_apps.append(SQSApp('notify-delivery-worker-research', ['research-mode'], 500, min_instance_count, 20))
-sqs_apps.append(SQSApp('notify-delivery-worker-priority', ['priority'], 500, min_instance_count, 20))
+sqs_apps.append(SQSApp('notify-delivery-worker-database', ['db-sms','db-email','db-letter'], 250, min_instance_count, 20))
+sqs_apps.append(SQSApp('notify-delivery-worker', ['notify', 'retry', 'process-job', 'periodic'], 250, min_instance_count, 20))
+sqs_apps.append(SQSApp('notify-delivery-worker-sender', ['send-sms','send-email'], 250, min_instance_count, 20))
+sqs_apps.append(SQSApp('notify-delivery-worker-research', ['research-mode'], 250, min_instance_count, 20))
+sqs_apps.append(SQSApp('notify-delivery-worker-priority', ['priority'], 250, min_instance_count, 20))
 
 elb_apps = []
 elb_apps.append(ELBApp('notify-api', 'notify-paas-proxy', 1500, min_instance_count, 20))

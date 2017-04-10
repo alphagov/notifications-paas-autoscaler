@@ -10,7 +10,7 @@ applications:
     memory: 128M
     env:
       AWS_REGION: eu-west-1
-      SCHEDULE_INTERVAL: 60
+      SCHEDULE_INTERVAL: 20
       CF_API_URL: https://api.cloud.service.gov.uk
       CF_ORG: govuk-notify
       CF_SPACE: <%= ENV.fetch("CF_SPACE") %>

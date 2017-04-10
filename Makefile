@@ -32,7 +32,7 @@ staging:
 production:
 	$(eval export CF_SPACE=production)
 	$(eval export SQS_QUEUE_PREFIX=live)
-	$(eval export CF_MIN_INSTANCE_COUNT=2)
+	$(eval export CF_MIN_INSTANCE_COUNT=4)
 	@true
 
 cf-push:

@@ -154,8 +154,6 @@ class AutoScaler:
 
         desired_instance_count = int(math.ceil(highest_request_count / float(app.request_per_instance)))
 
-        # passing 0 as highest request count to always do downscale on API.
-        # on SQS based autoscaling we down scale when we get below a 1000 messages
         self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
 
     def scale_paas_apps(self, app, paas_app, current_instance_count, desired_instance_count):

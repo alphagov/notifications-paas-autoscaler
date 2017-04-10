@@ -8,6 +8,8 @@ import random
 import datetime
 from functools import reduce
 from cloudfoundry_client.client import CloudFoundryClient
+from notifications_utils.clients.statsd.statsd_client import StatsdClient
+
 
 class SQSApp:
     def __init__(self, name, queues, messages_per_instance, min_instance_count, max_instance_count):
@@ -48,6 +50,17 @@ class AutoScaler:
         self.cf_org = os.environ['CF_ORG']
         self.cf_space = os.environ['CF_SPACE']
         self.cf_client = None
+
+        application = []
+        application['config']['STATSD_ENABLED'] = os.environ['STATSD_ENABLED']
+        application['config']['NOTIFY_ENVIRONMENT'] = os.environ['CF_SPACE']
+        application['config']['NOTIFY_APP_NAME'] = 'autoscaler'
+        application['config']['STATSD_HOST'] = 'statsd.hostedgraphite.com'
+        application['config']['STATSD_PORT'] = '8125'
+        application['config']['STATSD_PREFIX'] = os.environ['STATSD_PREFIX']
+
+        self.statsd_client = statsd_client.init_app(application)
+
 
     def get_cloudfoundry_client(self):
         if self.cf_client is None:

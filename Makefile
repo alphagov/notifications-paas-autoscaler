@@ -21,18 +21,24 @@ generate-manifest:
 preview:
 	$(eval export CF_SPACE=preview)
 	$(eval export SQS_QUEUE_PREFIX=preview)
+	$(eval export STATSD_ENABLED=True)
+	$(eval export STATSD_PREFIX=preview)
 	@true
 
 staging:
 	$(eval export CF_SPACE=staging)
 	$(eval export SQS_QUEUE_PREFIX=staging)
 	$(eval export CF_MIN_INSTANCE_COUNT=2)
+	$(eval export STATSD_ENABLED=True)
+	$(eval export STATSD_PREFIX=preview)
 	@true
 
 production:
 	$(eval export CF_SPACE=production)
 	$(eval export SQS_QUEUE_PREFIX=live)
 	$(eval export CF_MIN_INSTANCE_COUNT=4)
+	$(eval export STATSD_ENABLED=True)
+	$(eval export STATSD_PREFIX=preview)
 	@true
 
 cf-push:

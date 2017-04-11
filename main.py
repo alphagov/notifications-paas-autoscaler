@@ -50,16 +50,17 @@ class AutoScaler:
         self.cf_org = os.environ['CF_ORG']
         self.cf_space = os.environ['CF_SPACE']
         self.cf_client = None
-
-        application = []
-        application['config']['STATSD_ENABLED'] = os.environ['STATSD_ENABLED']
-        application['config']['NOTIFY_ENVIRONMENT'] = os.environ['CF_SPACE']
-        application['config']['NOTIFY_APP_NAME'] = 'autoscaler'
-        application['config']['STATSD_HOST'] = 'statsd.hostedgraphite.com'
-        application['config']['STATSD_PORT'] = '8125'
-        application['config']['STATSD_PREFIX'] = os.environ['STATSD_PREFIX']
-
-        self.statsd_client = statsd_client.init_app(application)
+        self.config = {}
+        self.config.update({
+            'STATSD_ENABLED': os.environ['STATSD_ENABLED'],
+            'NOTIFY_ENVIRONMENT': os.environ['CF_SPACE'],
+            'NOTIFY_APP_NAME': 'autoscaler',
+            'STATSD_HOST': 'statsd.hostedgraphite.com',
+            'STATSD_PORT': '8125',
+            'STATSD_PREFIX': os.environ['STATSD_PREFIX']
+        })
+        self.statsd_client = StatsdClient()
+        self.statsd_client.init_app(self)
 
 
     def get_cloudfoundry_client(self):
@@ -121,7 +122,9 @@ class AutoScaler:
     def get_highest_message_count(self, queues):
         result = 0
         for queue in queues:
-            result = max(result, self.get_sqs_message_count(self.get_sqs_queue_name(queue)))
+            message_count = self.get_sqs_message_count(self.get_sqs_queue_name(queue))
+            self.statsd_client.incr("{}.queue-length".format(self.get_sqs_queue_name(queue)), message_count)
+            result = max(result, message_count)
         return result
 
     def scale_sqs_app(self, app, paas_app):
@@ -129,7 +132,6 @@ class AutoScaler:
         highest_message_count = self.get_highest_message_count(app.queues)
         print('Highest message count: {}'.format(highest_message_count))
         desired_instance_count = int(math.ceil(highest_message_count / float(app.messages_per_instance)))
-
         self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
 
     def get_load_balancer_request_counts(self, load_balancer_name):
@@ -166,7 +168,7 @@ class AutoScaler:
         print('Highest request count (5 min): {}'.format(highest_request_count))
 
         desired_instance_count = int(math.ceil(highest_request_count / float(app.request_per_instance)))
-
+        self.statsd_client.gauge("{}.request-count".format(app.name), highest_request_count)
         self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
 
     def scale_paas_apps(self, app, paas_app, current_instance_count, desired_instance_count):
@@ -180,10 +182,14 @@ class AutoScaler:
         print('Current/desired instance count: {}/{}'.format(current_instance_count, desired_instance_count))
         if current_instance_count != desired_instance_count:
             print('Scaling {} from {} to {}'.format(app.name, current_instance_count, desired_instance_count))
+            self.statsd_client.gauge("{}.instance-count".format(app.name), desired_instance_count)
             try:
                 self.cf_client.apps._update(paas_app['guid'], {'instances': desired_instance_count})
             except BaseException as e:
                 print('Failed to scale {}: {}'.format(app.name, str(e)))
+        else:
+            self.statsd_client.gauge("{}.instance-count".format(app.name), current_instance_count)
+
 
     def schedule(self):
         current_time = time.time()

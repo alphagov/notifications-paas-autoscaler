@@ -231,7 +231,7 @@ sqs_apps.append(SQSApp('notify-delivery-worker-database', ['db-sms','db-email','
 sqs_apps.append(SQSApp('notify-delivery-worker', ['notify', 'retry', 'process-job', 'notify-internal-tasks', 'retry-tasks', 'job-tasks', 'periodic-tasks'], 250, min_instance_count, 5))
 sqs_apps.append(SQSApp('notify-delivery-worker-sender', ['send-sms','send-email', 'send-tasks'], 250, min_instance_count, 20))
 sqs_apps.append(SQSApp('notify-delivery-worker-research', ['research-mode', 'research-mode-tasks'], 250, min_instance_count, 20))
-sqs_apps.append(SQSApp('notify-delivery-worker-priority', ['priority', 'prioriy-tasks'], 250, min_instance_count, 20))
+sqs_apps.append(SQSApp('notify-delivery-worker-priority', ['priority', 'priority-tasks'], 250, min_instance_count, 20))
 sqs_apps.append(SQSApp('notify-delivery-worker-periodic', ['periodic', 'statistics', 'periodic-tasks', 'statistics-tasks'], 250, min_instance_count, 5))
 
 elb_apps = []

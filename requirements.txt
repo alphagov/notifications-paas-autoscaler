@@ -1,2 +1,4 @@
 cloudfoundry-client==0.0.19
 boto3==1.4.3
+
+git+https://github.com/alphagov/notifications-utils.git@15.0.3#egg=notifications-utils==15.0.3

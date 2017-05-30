@@ -8,6 +8,8 @@ import random
 import datetime
 from functools import reduce
 from cloudfoundry_client.client import CloudFoundryClient
+from notifications_utils.clients.statsd.statsd_client import StatsdClient
+
 
 class SQSApp:
     def __init__(self, name, queues, messages_per_instance, min_instance_count, max_instance_count):
@@ -48,6 +50,18 @@ class AutoScaler:
         self.cf_org = os.environ['CF_ORG']
         self.cf_space = os.environ['CF_SPACE']
         self.cf_client = None
+        self.config = {}
+        self.config.update({
+            'STATSD_ENABLED': os.environ['STATSD_ENABLED'],
+            'NOTIFY_ENVIRONMENT': os.environ['CF_SPACE'],
+            'NOTIFY_APP_NAME': 'autoscaler',
+            'STATSD_HOST': 'statsd.hostedgraphite.com',
+            'STATSD_PORT': '8125',
+            'STATSD_PREFIX': os.environ['STATSD_PREFIX']
+        })
+        self.statsd_client = StatsdClient()
+        self.statsd_client.init_app(self)
+
 
     def get_cloudfoundry_client(self):
         if self.cf_client is None:
@@ -108,7 +122,9 @@ class AutoScaler:
     def get_highest_message_count(self, queues):
         result = 0
         for queue in queues:
-            result = max(result, self.get_sqs_message_count(self.get_sqs_queue_name(queue)))
+            message_count = self.get_sqs_message_count(self.get_sqs_queue_name(queue))
+            self.statsd_client.incr("{}.queue-length".format(self.get_sqs_queue_name(queue)), message_count)
+            result = max(result, message_count)
         return result
 
     def scale_sqs_app(self, app, paas_app):
@@ -116,7 +132,6 @@ class AutoScaler:
         highest_message_count = self.get_highest_message_count(app.queues)
         print('Highest message count: {}'.format(highest_message_count))
         desired_instance_count = int(math.ceil(highest_message_count / float(app.messages_per_instance)))
-
         self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
 
     def get_load_balancer_request_counts(self, load_balancer_name):
@@ -153,7 +168,7 @@ class AutoScaler:
         print('Highest request count (5 min): {}'.format(highest_request_count))
 
         desired_instance_count = int(math.ceil(highest_request_count / float(app.request_per_instance)))
-
+        self.statsd_client.gauge("{}.request-count".format(app.name), highest_request_count)
         self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
 
     def scale_paas_apps(self, app, paas_app, current_instance_count, desired_instance_count):
@@ -167,10 +182,14 @@ class AutoScaler:
         print('Current/desired instance count: {}/{}'.format(current_instance_count, desired_instance_count))
         if current_instance_count != desired_instance_count:
             print('Scaling {} from {} to {}'.format(app.name, current_instance_count, desired_instance_count))
+            self.statsd_client.gauge("{}.instance-count".format(app.name), desired_instance_count)
             try:
                 self.cf_client.apps._update(paas_app['guid'], {'instances': desired_instance_count})
             except BaseException as e:
                 print('Failed to scale {}: {}'.format(app.name, str(e)))
+        else:
+            self.statsd_client.gauge("{}.instance-count".format(app.name), current_instance_count)
+
 
     def schedule(self):
         current_time = time.time()
@@ -208,11 +227,12 @@ class AutoScaler:
 min_instance_count = int(os.environ['CF_MIN_INSTANCE_COUNT'])
 
 sqs_apps = []
-sqs_apps.append(SQSApp('notify-delivery-worker-database', ['db-sms','db-email','db-letter'], 250, min_instance_count, 20))
-sqs_apps.append(SQSApp('notify-delivery-worker', ['notify', 'retry', 'process-job', 'periodic'], 250, min_instance_count, 20))
-sqs_apps.append(SQSApp('notify-delivery-worker-sender', ['send-sms','send-email'], 250, min_instance_count, 20))
-sqs_apps.append(SQSApp('notify-delivery-worker-research', ['research-mode'], 250, min_instance_count, 20))
-sqs_apps.append(SQSApp('notify-delivery-worker-priority', ['priority'], 250, min_instance_count, 20))
+sqs_apps.append(SQSApp('notify-delivery-worker-database', ['db-sms','db-email','db-letter', 'database-tasks'], 250, min_instance_count, 20))
+sqs_apps.append(SQSApp('notify-delivery-worker', ['notify', 'retry', 'process-job', 'notify-internal-tasks', 'retry-tasks', 'job-tasks', 'periodic-tasks'], 250, min_instance_count, 5))
+sqs_apps.append(SQSApp('notify-delivery-worker-sender', ['send-sms','send-email', 'send-tasks'], 250, min_instance_count, 20))
+sqs_apps.append(SQSApp('notify-delivery-worker-research', ['research-mode', 'research-mode-tasks'], 250, min_instance_count, 20))
+sqs_apps.append(SQSApp('notify-delivery-worker-priority', ['priority', 'prioriy-tasks'], 250, min_instance_count, 20))
+sqs_apps.append(SQSApp('notify-delivery-worker-periodic', ['periodic', 'statistics', 'periodic-tasks', 'statistics-tasks'], 250, min_instance_count, 5))
 
 elb_apps = []
 elb_apps.append(ELBApp('notify-api', 'notify-paas-proxy', 1500, min_instance_count, 20))

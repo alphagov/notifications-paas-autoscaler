@@ -45,3 +45,12 @@ When you change the service data you have to restage the application (or push it
 ```
 cf restage notify-paas-autoscaler
 ```
+
+
+## Runnning tests
+
+### Virtualenv
+
+```
+mkvirtualenv -p /usr/local/bin/python3 notifications-paas-autoscaler
+```

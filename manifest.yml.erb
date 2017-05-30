@@ -14,8 +14,10 @@ applications:
       CF_API_URL: https://api.cloud.service.gov.uk
       CF_ORG: govuk-notify
       CF_SPACE: <%= ENV.fetch("CF_SPACE") %>
+      STATSD_ENABLED: <%= ENV.fetch("STATSD_ENABLED") %>
       SQS_QUEUE_PREFIX: <%= ENV.fetch("SQS_QUEUE_PREFIX") %>
       PYTHONUNBUFFERED: 1
       CF_MIN_INSTANCE_COUNT: <%= ENV.fetch("CF_MIN_INSTANCE_COUNT", "1") %>
     services:
       - notify-paas-autoscaler
+      - hosted-graphite

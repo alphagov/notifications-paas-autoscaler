@@ -21,20 +21,30 @@ generate-manifest:
 preview:
 	$(eval export CF_SPACE=preview)
 	$(eval export SQS_QUEUE_PREFIX=preview)
+	$(eval export CF_MAX_INSTANCE_COUNT_HIGH=2)
+	$(eval export CF_MAX_INSTANCE_COUNT_LOW=1)
+	$(eval export CF_MIN_INSTANCE_COUNT_HIGH=1)
+	$(eval export CF_MIN_INSTANCE_COUNT_LOW=1)
 	$(eval export STATSD_ENABLED=False)
 	@true
 
 staging:
 	$(eval export CF_SPACE=staging)
 	$(eval export SQS_QUEUE_PREFIX=staging)
-	$(eval export CF_MIN_INSTANCE_COUNT=2)
+	$(eval export CF_MAX_INSTANCE_COUNT_HIGH=20)
+	$(eval export CF_MAX_INSTANCE_COUNT_LOW=5)
+	$(eval export CF_MIN_INSTANCE_COUNT_HIGH=2)
+	$(eval export CF_MIN_INSTANCE_COUNT_LOW=1)
 	$(eval export STATSD_ENABLED=True)
 	@true
 
 production:
 	$(eval export CF_SPACE=production)
 	$(eval export SQS_QUEUE_PREFIX=live)
-	$(eval export CF_MIN_INSTANCE_COUNT=4)
+	$(eval export CF_MAX_INSTANCE_COUNT_HIGH=20)
+	$(eval export CF_MAX_INSTANCE_COUNT_LOW=5)
+	$(eval export CF_MIN_INSTANCE_COUNT_HIGH=4)
+	$(eval export CF_MIN_INSTANCE_COUNT_LOW=2)
 	$(eval export STATSD_ENABLED=True)
 	@true
 

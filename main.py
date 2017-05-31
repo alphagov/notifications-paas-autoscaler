@@ -238,7 +238,7 @@ sqs_apps.append(SQSApp('notify-delivery-worker-priority', ['priority', 'priority
 sqs_apps.append(SQSApp('notify-delivery-worker-periodic', ['periodic', 'statistics', 'periodic-tasks', 'statistics-tasks'], 250, min_instance_count_low, max_instance_count_low))
 
 elb_apps = []
-elb_apps.append(ELBApp('notify-api', 'notify-paas-proxy', 1500, min_instance_count_high, 20))
+elb_apps.append(ELBApp('notify-api', 'notify-paas-proxy', 1500, min_instance_count_high, max_instance_count_high))
 
 autoscaler = AutoScaler(sqs_apps, elb_apps)
 autoscaler.run()

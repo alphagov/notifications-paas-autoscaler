@@ -17,7 +17,10 @@ applications:
       STATSD_ENABLED: <%= ENV.fetch("STATSD_ENABLED") %>
       SQS_QUEUE_PREFIX: <%= ENV.fetch("SQS_QUEUE_PREFIX") %>
       PYTHONUNBUFFERED: 1
-      CF_MIN_INSTANCE_COUNT: <%= ENV.fetch("CF_MIN_INSTANCE_COUNT", "1") %>
+      CF_MIN_INSTANCE_COUNT_LOW: <%= ENV.fetch("CF_MIN_INSTANCE_COUNT_LOW", "1") %>
+      CF_MIN_INSTANCE_COUNT_HIGH: <%= ENV.fetch("CF_MIN_INSTANCE_COUNT_HIGH", "1") %>
+      CF_MAX_INSTANCE_COUNT_LOW: <%= ENV.fetch("CF_MAX_INSTANCE_COUNT_LOW", "1") %>
+      CF_MAX_INSTANCE_COUNT_HIGH: <%= ENV.fetch("CF_MAX_INSTANCE_COUNT_HIGH", "1") %>
     services:
       - notify-paas-autoscaler
       - hosted-graphite

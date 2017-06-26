@@ -61,6 +61,7 @@ class AutoScaler:
         })
         self.statsd_client = StatsdClient()
         self.statsd_client.init_app(self)
+        self.last_scale_up = {}
 
 
     def get_cloudfoundry_client(self):
@@ -175,20 +176,32 @@ class AutoScaler:
         desired_instance_count = min(app.max_instance_count, desired_instance_count)
         desired_instance_count = max(app.min_instance_count, desired_instance_count)
 
-        # Make sure we don't remove more than 1 instance at a time, and only downscale when under 1000 messages
-        if desired_instance_count < current_instance_count and current_instance_count - desired_instance_count > 2:
-            desired_instance_count = current_instance_count - 1
+        if current_instance_count == desired_instance_count:
+            self.statsd_client.gauge("{}.instance-count".format(app.name), current_instance_count)
+            return
+
+        is_scale_up = True if desired_instance_count > current_instance_count else False
+        is_scale_down = not is_scale_up  # for readability
+
+        if is_scale_up:
+            self.last_scale_up[app.name] = datetime.datetime.now()
+
+        if is_scale_down:
+            if self.last_scale_up.get(app.name, datetime.datetime.now()) + datetime.timedelta(minutes=5) < datetime.now():
+                print("Skipping scale down due to recent scale up event")
+                return
+
+            # Make sure we don't remove more than 1 instance at a time, and only downscale when under 1000 messages
+            if current_instance_count - desired_instance_count >= 2:
+                desired_instance_count = current_instance_count - 1
 
         print('Current/desired instance count: {}/{}'.format(current_instance_count, desired_instance_count))
-        if current_instance_count != desired_instance_count:
-            print('Scaling {} from {} to {}'.format(app.name, current_instance_count, desired_instance_count))
-            self.statsd_client.gauge("{}.instance-count".format(app.name), desired_instance_count)
-            try:
-                self.cf_client.apps._update(paas_app['guid'], {'instances': desired_instance_count})
-            except BaseException as e:
-                print('Failed to scale {}: {}'.format(app.name, str(e)))
-        else:
-            self.statsd_client.gauge("{}.instance-count".format(app.name), current_instance_count)
+        print('Scaling {} from {} to {}'.format(app.name, current_instance_count, desired_instance_count))
+        self.statsd_client.gauge("{}.instance-count".format(app.name), desired_instance_count)
+        try:
+            self.cf_client.apps._update(paas_app['guid'], {'instances': desired_instance_count})
+        except BaseException as e:
+            print('Failed to scale {}: {}'.format(app.name, str(e)))
 
 
     def schedule(self):

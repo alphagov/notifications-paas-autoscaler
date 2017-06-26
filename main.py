@@ -122,8 +122,9 @@ class AutoScaler:
     def get_highest_message_count(self, queues):
         result = 0
         for queue in queues:
-            message_count = self.get_sqs_message_count(self.get_sqs_queue_name(queue))
-            self.statsd_client.incr("{}.queue-length".format(self.get_sqs_queue_name(queue)), message_count)
+            queue_name = self.get_sqs_queue_name(queue)
+            message_count = self.get_sqs_message_count(queue_name)
+            self.statsd_client.incr("{}.queue-length".format(queue_name), message_count)
             result = max(result, message_count)
         return result
 

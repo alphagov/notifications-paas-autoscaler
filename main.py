@@ -187,7 +187,7 @@ class AutoScaler:
             self.last_scale_up[app.name] = datetime.datetime.now()
 
         if is_scale_down:
-            if self.last_scale_up.get(app.name, datetime.datetime.now()) + datetime.timedelta(minutes=5) < datetime.now():
+            if self.last_scale_up.get(app.name, datetime.datetime.now()) + datetime.timedelta(minutes=5) > datetime.now():
                 print("Skipping scale down due to recent scale up event")
                 return
 

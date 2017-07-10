@@ -1,12 +1,10 @@
 import os
 import boto3
-import base64
 import math
 import sched
 import time
 import random
 import datetime
-from functools import reduce
 from cloudfoundry_client.client import CloudFoundryClient
 from notifications_utils.clients.statsd.statsd_client import StatsdClient
 
@@ -19,6 +17,7 @@ class SQSApp:
         self.min_instance_count = min_instance_count
         self.max_instance_count = max_instance_count
 
+
 class ELBApp:
     def __init__(self, name, load_balancer_name, request_per_instance, min_instance_count, max_instance_count):
         self.name = name
@@ -26,6 +25,7 @@ class ELBApp:
         self.request_per_instance = request_per_instance
         self.min_instance_count = min_instance_count
         self.max_instance_count = max_instance_count
+
 
 class AutoScaler:
     def __init__(self, sqs_apps, elb_apps):
@@ -61,7 +61,7 @@ class AutoScaler:
         })
         self.statsd_client = StatsdClient()
         self.statsd_client.init_app(self)
-
+        self.last_scale_up = {}
 
     def get_cloudfoundry_client(self):
         if self.cf_client is None:
@@ -122,8 +122,9 @@ class AutoScaler:
     def get_highest_message_count(self, queues):
         result = 0
         for queue in queues:
-            message_count = self.get_sqs_message_count(self.get_sqs_queue_name(queue))
-            self.statsd_client.incr("{}.queue-length".format(self.get_sqs_queue_name(queue)), message_count)
+            queue_name = self.get_sqs_queue_name(queue)
+            message_count = self.get_sqs_message_count(queue_name)
+            self.statsd_client.incr("{}.queue-length".format(queue_name), message_count)
             result = max(result, message_count)
         return result
 
@@ -153,7 +154,7 @@ class AutoScaler:
             Unit='Count'
         )
         datapoints = result['Datapoints']
-        datapoints = sorted(datapoints,key=lambda x: x['Timestamp'])
+        datapoints = sorted(datapoints, key=lambda x: x['Timestamp'])
         return [row['Sum'] for row in datapoints]
 
     def scale_elb_app(self, app, paas_app):
@@ -175,21 +176,36 @@ class AutoScaler:
         desired_instance_count = min(app.max_instance_count, desired_instance_count)
         desired_instance_count = max(app.min_instance_count, desired_instance_count)
 
-        # Make sure we don't remove more than 1 instance at a time, and only downscale when under 1000 messages
-        if desired_instance_count < current_instance_count and current_instance_count - desired_instance_count > 2:
-            desired_instance_count = current_instance_count - 1
+        if current_instance_count == desired_instance_count:
+            self.statsd_client.gauge("{}.instance-count".format(app.name), current_instance_count)
+            return
+
+        is_scale_up = True if desired_instance_count > current_instance_count else False
+        is_scale_down = not is_scale_up  # for readability
+
+        if is_scale_up:
+            self.last_scale_up[app.name] = datetime.datetime.now()
+
+        if is_scale_down:
+            # if we redeployed the app and we lost the last scale up time
+            if not self.last_scale_up.get(app.name):
+                self.last_scale_up[app.name] = datetime.datetime.now()
+
+            if self.last_scale_up[app.name] + datetime.timedelta(minutes=5) > datetime.datetime.now():
+                print("Skipping scale down due to recent scale up event")
+                return
+
+            # Make sure we don't remove more than 1 instance at a time, and only downscale when under 1000 messages
+            if current_instance_count - desired_instance_count >= 2:
+                desired_instance_count = current_instance_count - 1
 
         print('Current/desired instance count: {}/{}'.format(current_instance_count, desired_instance_count))
-        if current_instance_count != desired_instance_count:
-            print('Scaling {} from {} to {}'.format(app.name, current_instance_count, desired_instance_count))
-            self.statsd_client.gauge("{}.instance-count".format(app.name), desired_instance_count)
-            try:
-                self.cf_client.apps._update(paas_app['guid'], {'instances': desired_instance_count})
-            except BaseException as e:
-                print('Failed to scale {}: {}'.format(app.name, str(e)))
-        else:
-            self.statsd_client.gauge("{}.instance-count".format(app.name), current_instance_count)
-
+        print('Scaling {} from {} to {}'.format(app.name, current_instance_count, desired_instance_count))
+        self.statsd_client.gauge("{}.instance-count".format(app.name), desired_instance_count)
+        try:
+            self.cf_client.apps._update(paas_app['guid'], {'instances': desired_instance_count})
+        except BaseException as e:
+            print('Failed to scale {}: {}'.format(app.name, str(e)))
 
     def schedule(self):
         current_time = time.time()
@@ -201,13 +217,13 @@ class AutoScaler:
         paas_apps = self.get_paas_apps()
 
         for app in self.sqs_apps:
-            if not app.name in paas_apps:
+            if app.name not in paas_apps:
                 print("Application {} does not exist".format(app.name))
                 continue
             self.scale_sqs_app(app, paas_apps[app.name])
 
         for app in self.elb_apps:
-            if not app.name in paas_apps:
+            if app.name not in paas_apps:
                 print("Application {} does not exist".format(app.name))
                 continue
             self.scale_elb_app(app, paas_apps[app.name])
@@ -224,15 +240,16 @@ class AutoScaler:
         while True:
             self.scheduler.run()
 
+
 max_instance_count_high = int(os.environ['CF_MAX_INSTANCE_COUNT_HIGH'])
 max_instance_count_low = int(os.environ['CF_MAX_INSTANCE_COUNT_LOW'])
 min_instance_count_high = int(os.environ['CF_MIN_INSTANCE_COUNT_HIGH'])
 min_instance_count_low = int(os.environ['CF_MIN_INSTANCE_COUNT_LOW'])
 
 sqs_apps = []
-sqs_apps.append(SQSApp('notify-delivery-worker-database', ['db-sms','db-email','db-letter', 'database-tasks'], 250, min_instance_count_low, max_instance_count_high))
+sqs_apps.append(SQSApp('notify-delivery-worker-database', ['db-sms', 'db-email', 'db-letter', 'database-tasks'], 250, min_instance_count_low, max_instance_count_high))
 sqs_apps.append(SQSApp('notify-delivery-worker', ['notify', 'retry', 'process-job', 'notify-internal-tasks', 'retry-tasks', 'job-tasks', 'periodic-tasks'], 250, min_instance_count_low, max_instance_count_low))
-sqs_apps.append(SQSApp('notify-delivery-worker-sender', ['send-sms','send-email', 'send-tasks'], 250, min_instance_count_high, max_instance_count_high))
+sqs_apps.append(SQSApp('notify-delivery-worker-sender', ['send-sms', 'send-email', 'send-tasks'], 250, min_instance_count_high, max_instance_count_high))
 sqs_apps.append(SQSApp('notify-delivery-worker-research', ['research-mode', 'research-mode-tasks'], 250, min_instance_count_low, max_instance_count_low))
 sqs_apps.append(SQSApp('notify-delivery-worker-priority', ['priority', 'priority-tasks'], 250, min_instance_count_low, max_instance_count_low))
 sqs_apps.append(SQSApp('notify-delivery-worker-periodic', ['periodic', 'statistics', 'periodic-tasks', 'statistics-tasks'], 250, min_instance_count_low, max_instance_count_low))

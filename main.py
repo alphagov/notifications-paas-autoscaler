@@ -118,19 +118,19 @@ class AutoScaler:
         result = int(response['Attributes']['ApproximateNumberOfMessages'])
         print('Messages in {}: {}'.format(name, result))
         return result
-    
+
     def get_message_count(self, queue):
         queue_name = self.get_sqs_queue_name(queue)
         message_count = self.get_sqs_message_count(queue_name)
         self.statsd_client.incr("{}.queue-length".format(queue_name), message_count)
         return message_count
-    
+
     def get_total_message_count(self, queues):
         return sum(self.get_message_count(queue) for queue in queues)
 
     def scale_sqs_app(self, app, paas_app):
         print('Processing {}'.format(app.name))
-        total_message_count = self.get_highest_message_count(app.queues)
+        total_message_count = self.get_total_message_count(app.queues)
         print('Total message count: {}'.format(total_message_count))
         desired_instance_count = int(math.ceil(total_message_count / float(app.messages_per_instance)))
         self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)

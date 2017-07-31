@@ -118,21 +118,21 @@ class AutoScaler:
         result = int(response['Attributes']['ApproximateNumberOfMessages'])
         print('Messages in {}: {}'.format(name, result))
         return result
-
-    def get_highest_message_count(self, queues):
-        result = 0
-        for queue in queues:
-            queue_name = self.get_sqs_queue_name(queue)
-            message_count = self.get_sqs_message_count(queue_name)
-            self.statsd_client.incr("{}.queue-length".format(queue_name), message_count)
-            result = max(result, message_count)
-        return result
+    
+    def get_message_count(self, queue):
+        queue_name = self.get_sqs_queue_name(queue)
+        message_count = self.get_sqs_message_count(queue_name)
+        self.statsd_client.incr("{}.queue-length".format(queue_name), message_count)
+        return message_count
+    
+    def get_total_message_count(self, queues):
+        return sum(self.get_message_count(queue) for queue in queues)
 
     def scale_sqs_app(self, app, paas_app):
         print('Processing {}'.format(app.name))
-        highest_message_count = self.get_highest_message_count(app.queues)
-        print('Highest message count: {}'.format(highest_message_count))
-        desired_instance_count = int(math.ceil(highest_message_count / float(app.messages_per_instance)))
+        total_message_count = self.get_highest_message_count(app.queues)
+        print('Total message count: {}'.format(total_message_count))
+        desired_instance_count = int(math.ceil(total_message_count / float(app.messages_per_instance)))
         self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
 
     def get_load_balancer_request_counts(self, load_balancer_name):
@@ -247,12 +247,12 @@ min_instance_count_high = int(os.environ['CF_MIN_INSTANCE_COUNT_HIGH'])
 min_instance_count_low = int(os.environ['CF_MIN_INSTANCE_COUNT_LOW'])
 
 sqs_apps = []
-sqs_apps.append(SQSApp('notify-delivery-worker-database', ['db-sms', 'db-email', 'db-letter', 'database-tasks'], 250, min_instance_count_low, max_instance_count_high))
-sqs_apps.append(SQSApp('notify-delivery-worker', ['notify', 'retry', 'process-job', 'notify-internal-tasks', 'retry-tasks', 'job-tasks', 'periodic-tasks'], 250, min_instance_count_low, max_instance_count_low))
-sqs_apps.append(SQSApp('notify-delivery-worker-sender', ['send-sms', 'send-email', 'send-tasks'], 250, min_instance_count_high, max_instance_count_high))
-sqs_apps.append(SQSApp('notify-delivery-worker-research', ['research-mode', 'research-mode-tasks'], 250, min_instance_count_low, max_instance_count_low))
-sqs_apps.append(SQSApp('notify-delivery-worker-priority', ['priority', 'priority-tasks'], 250, min_instance_count_low, max_instance_count_low))
-sqs_apps.append(SQSApp('notify-delivery-worker-periodic', ['periodic', 'statistics', 'periodic-tasks', 'statistics-tasks'], 250, min_instance_count_low, max_instance_count_low))
+sqs_apps.append(SQSApp('notify-delivery-worker-database', ['database-tasks'], 250, min_instance_count_low, max_instance_count_high))
+sqs_apps.append(SQSApp('notify-delivery-worker', ['notify-internal-tasks', 'retry-tasks', 'job-tasks'], 250, min_instance_count_low, max_instance_count_low))
+sqs_apps.append(SQSApp('notify-delivery-worker-sender', ['send-sms-tasks', 'send-email-tasks'], 250, min_instance_count_high, max_instance_count_high))
+sqs_apps.append(SQSApp('notify-delivery-worker-research', ['research-mode-tasks'], 250, min_instance_count_low, max_instance_count_low))
+sqs_apps.append(SQSApp('notify-delivery-worker-priority', ['priority-tasks'], 250, min_instance_count_low, max_instance_count_low))
+sqs_apps.append(SQSApp('notify-delivery-worker-periodic', ['periodic-tasks', 'statistics-tasks'], 250, min_instance_count_low, max_instance_count_low))
 
 elb_apps = []
 elb_apps.append(ELBApp('notify-api', 'notify-paas-proxy', 1500, min_instance_count_high, max_instance_count_high))

@@ -187,7 +187,7 @@ class AutoScaler:
         self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
 
     def get_scheduled_jobs_items_count(self):
-        interval = '5 minutes'
+        interval = '3 minutes'
         db_uri = json.loads(os.environ['VCAP_SERVICES'])['postgres'][0]['credentials']['uri']
         with psycopg2.connect(db_uri) as conn:
             with conn.cursor() as cursor:

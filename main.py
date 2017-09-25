@@ -201,8 +201,8 @@ class AutoScaler:
                 cursor.execute(q)
                 items_count = cursor.fetchone()[0]
 
-                print("{} items are scheduled in the next {}".format(
-                      items_count, interval))
+                print("Items scheduled in the next {}: {}".format(
+                      interval, items_count))
 
                 return items_count
 

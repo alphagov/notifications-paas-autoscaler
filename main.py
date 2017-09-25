@@ -1,11 +1,15 @@
-import os
 import boto3
+import datetime
+import json
 import math
+import os
+import psycopg2
+import random
 import sched
 import time
-import random
-import datetime
+
 from cloudfoundry_client.client import CloudFoundryClient
+
 from notifications_utils.clients.statsd.statsd_client import StatsdClient
 
 
@@ -183,7 +187,24 @@ class AutoScaler:
         self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
 
     def get_scheduled_jobs_items_count(self):
-        pass
+        interval = '5 minutes'
+        db_uri = json.loads(os.environ['VCAP_SERVICES'])['postgres'][0]['credentials']['uri']
+        with psycopg2.connect(db_uri) as conn:
+            with conn.cursor() as cursor:
+                # Use coalesce to avoid null values when nothing is scheduled
+                # https://stackoverflow.com/a/6530371/1477072
+                q = ("SELECT COALESCE(SUM(notification_count), 0) "
+                     "FROM jobs "
+                     "WHERE scheduled_for - current_timestamp < interval '{}' AND "
+                     "job_status = 'scheduled';".format(interval))
+
+                cursor.execute(q)
+                items_count = cursor.fetchone()[0]
+
+                print("{} items are scheduled in the next {}".format(
+                      items_count, interval))
+
+                return items_count
 
     def scale_schedule_job_app(self, app, paas_app, scheduled_items):
         desired_instance_count = int(math.ceil(scheduled_items / float(app.items_per_instance)))

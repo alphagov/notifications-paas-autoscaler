@@ -22,21 +22,21 @@ class App:
 
 class SQSApp(App):
     def __init__(self, name, queues, messages_per_instance, min_instance_count, max_instance_count):
-        super.__init__(name, min_instance_count, max_instance_count)
+        super().__init__(name, min_instance_count, max_instance_count)
         self.queues = queues
         self.messages_per_instance = messages_per_instance
 
 
 class ELBApp(App):
     def __init__(self, name, load_balancer_name, request_per_instance, min_instance_count, max_instance_count):
-        super.__init__(name, min_instance_count, max_instance_count)
+        super().__init__(name, min_instance_count, max_instance_count)
         self.load_balancer_name = load_balancer_name
         self.request_per_instance = request_per_instance
 
 
 class ScheduledJobApp(App):
     def __init__(self, name, items_per_instance, min_instance_count, max_instance_count):
-        super.__init__(name, min_instance_count, max_instance_count)
+        super().__init__(name, min_instance_count, max_instance_count)
         self.items_per_instance = items_per_instance
 
 

@@ -207,7 +207,9 @@ class AutoScaler:
                 return items_count
 
     def scale_schedule_job_app(self, app, paas_app, scheduled_items):
-        desired_instance_count = int(math.ceil(scheduled_items / float(app.items_per_instance)))
+        # use only half of the items because not everything gets put on the queue at once
+        half_items = scheduled_items / 2
+        desired_instance_count = int(math.ceil(half_items / float(app.items_per_instance)))
         self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
 
     def scale_paas_apps(self, app, paas_app, current_instance_count, desired_instance_count):

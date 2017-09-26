@@ -1,36 +1,50 @@
-import os
 import boto3
+import datetime
+import json
 import math
+import os
+import psycopg2
+import random
 import sched
 import time
-import random
-import datetime
+
 from cloudfoundry_client.client import CloudFoundryClient
+
 from notifications_utils.clients.statsd.statsd_client import StatsdClient
 
 
-class SQSApp:
-    def __init__(self, name, queues, messages_per_instance, min_instance_count, max_instance_count):
+class App:
+    def __init__(self, name, min_instance_count, max_instance_count):
         self.name = name
+        self.min_instance_count = min_instance_count
+        self.max_instance_count = max_instance_count
+
+
+class SQSApp(App):
+    def __init__(self, name, queues, messages_per_instance, min_instance_count, max_instance_count):
+        super().__init__(name, min_instance_count, max_instance_count)
         self.queues = queues
         self.messages_per_instance = messages_per_instance
-        self.min_instance_count = min_instance_count
-        self.max_instance_count = max_instance_count
 
 
-class ELBApp:
+class ELBApp(App):
     def __init__(self, name, load_balancer_name, request_per_instance, min_instance_count, max_instance_count):
-        self.name = name
+        super().__init__(name, min_instance_count, max_instance_count)
         self.load_balancer_name = load_balancer_name
         self.request_per_instance = request_per_instance
-        self.min_instance_count = min_instance_count
-        self.max_instance_count = max_instance_count
+
+
+class ScheduledJobApp(App):
+    def __init__(self, name, items_per_instance, min_instance_count, max_instance_count):
+        super().__init__(name, min_instance_count, max_instance_count)
+        self.items_per_instance = items_per_instance
 
 
 class AutoScaler:
-    def __init__(self, sqs_apps, elb_apps):
+    def __init__(self, sqs_apps, elb_apps, scheduled_job_apps):
         self.sqs_apps = sqs_apps
         self.elb_apps = elb_apps
+        self.scheduled_job_apps = scheduled_job_apps
 
         self.schedule_interval = int(os.environ['SCHEDULE_INTERVAL']) + 0.0
         self.schedule_delay = random.random() * self.schedule_interval
@@ -172,6 +186,32 @@ class AutoScaler:
         self.statsd_client.gauge("{}.request-count".format(app.name), highest_request_count)
         self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
 
+    def get_scheduled_jobs_items_count(self):
+        interval = '3 minutes'
+        db_uri = json.loads(os.environ['VCAP_SERVICES'])['postgres'][0]['credentials']['uri']
+        with psycopg2.connect(db_uri) as conn:
+            with conn.cursor() as cursor:
+                # Use coalesce to avoid null values when nothing is scheduled
+                # https://stackoverflow.com/a/6530371/1477072
+                q = ("SELECT COALESCE(SUM(notification_count), 0) "
+                     "FROM jobs "
+                     "WHERE scheduled_for - current_timestamp < interval '{}' AND "
+                     "job_status = 'scheduled';".format(interval))
+
+                cursor.execute(q)
+                items_count = cursor.fetchone()[0]
+
+                print("Items scheduled in the next {}: {}".format(
+                      interval, items_count))
+
+                return items_count
+
+    def scale_schedule_job_app(self, app, paas_app, scheduled_items):
+        # use only half of the items because not everything gets put on the queue at once
+        half_items = scheduled_items / 2
+        desired_instance_count = int(math.ceil(half_items / float(app.items_per_instance)))
+        self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
+
     def scale_paas_apps(self, app, paas_app, current_instance_count, desired_instance_count):
         desired_instance_count = min(app.max_instance_count, desired_instance_count)
         desired_instance_count = max(app.min_instance_count, desired_instance_count)
@@ -216,17 +256,24 @@ class AutoScaler:
     def run_task(self):
         paas_apps = self.get_paas_apps()
 
-        for app in self.sqs_apps:
-            if app.name not in paas_apps:
-                print("Application {} does not exist".format(app.name))
-                continue
-            self.scale_sqs_app(app, paas_apps[app.name])
-
         for app in self.elb_apps:
             if app.name not in paas_apps:
                 print("Application {} does not exist".format(app.name))
                 continue
             self.scale_elb_app(app, paas_apps[app.name])
+
+        scheduled_items = self.get_scheduled_jobs_items_count()
+        for app in self.scheduled_job_apps:
+            if app.name not in paas_apps:
+                print("Application {} does not exist".format(app.name))
+                continue
+            self.scale_schedule_job_app(app, paas_apps[app.name], scheduled_items)
+
+        for app in self.sqs_apps:
+            if app.name not in paas_apps:
+                print("Application {} does not exist".format(app.name))
+                continue
+            self.scale_sqs_app(app, paas_apps[app.name])
 
         self.schedule()
 
@@ -257,5 +304,13 @@ sqs_apps.append(SQSApp('notify-delivery-worker-periodic', ['periodic-tasks', 'st
 elb_apps = []
 elb_apps.append(ELBApp('notify-api', 'notify-paas-proxy', 1500, min_instance_count_high, max_instance_count_high))
 
-autoscaler = AutoScaler(sqs_apps, elb_apps)
+scheduled_job_apps = []
+scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-database', 250, min_instance_count_low, max_instance_count_high))
+scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker', 250, min_instance_count_low, max_instance_count_low))
+scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-sender', 250, min_instance_count_high, max_instance_count_high))
+scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-research', 250, min_instance_count_low, max_instance_count_low))
+scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-priority', 250, min_instance_count_low, max_instance_count_low))
+scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-periodic', 250, min_instance_count_low, max_instance_count_low))
+
+autoscaler = AutoScaler(sqs_apps, elb_apps, scheduled_job_apps)
 autoscaler.run()

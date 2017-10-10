@@ -187,7 +187,7 @@ class AutoScaler:
         self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
 
     def get_scheduled_jobs_items_count(self):
-        interval = '3 minutes'
+        interval = '1 minute'
         db_uri = json.loads(os.environ['VCAP_SERVICES'])['postgres'][0]['credentials']['uri']
         with psycopg2.connect(db_uri) as conn:
             with conn.cursor() as cursor:
@@ -207,9 +207,9 @@ class AutoScaler:
                 return items_count
 
     def scale_schedule_job_app(self, app, paas_app, scheduled_items):
-        # use only half of the items because not everything gets put on the queue at once
-        half_items = scheduled_items / 2
-        desired_instance_count = int(math.ceil(half_items / float(app.items_per_instance)))
+        # use only a third of the items because not everything gets put on the queue at once
+        scale_items = scheduled_items / 3
+        desired_instance_count = int(math.ceil(scale_items / float(app.items_per_instance)))
         self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
 
     def scale_paas_apps(self, app, paas_app, current_instance_count, desired_instance_count):

@@ -51,4 +51,5 @@ production:
 cf-push:
 	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
 	cf target -s ${CF_SPACE}
+	cf unbind-service notify-paas-autoscaler notify-db
 	cf push -f <(make generate-manifest)

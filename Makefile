@@ -33,8 +33,8 @@ staging:
 	$(eval export SQS_QUEUE_PREFIX=staging)
 	$(eval export CF_MAX_INSTANCE_COUNT_HIGH=20)
 	$(eval export CF_MAX_INSTANCE_COUNT_LOW=5)
-	$(eval export CF_MIN_INSTANCE_COUNT_HIGH=2)
-	$(eval export CF_MIN_INSTANCE_COUNT_LOW=1)
+	$(eval export CF_MIN_INSTANCE_COUNT_HIGH=4)
+	$(eval export CF_MIN_INSTANCE_COUNT_LOW=2)
 	$(eval export STATSD_ENABLED=True)
 	@true
 
@@ -51,4 +51,5 @@ production:
 cf-push:
 	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
 	cf target -s ${CF_SPACE}
+	cf unbind-service notify-paas-autoscaler notify-db
 	cf push -f <(make generate-manifest)

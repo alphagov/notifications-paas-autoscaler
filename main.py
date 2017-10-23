@@ -32,6 +32,7 @@ class ELBApp(App):
         super().__init__(name, min_instance_count, max_instance_count)
         self.load_balancer_name = load_balancer_name
         self.request_per_instance = request_per_instance
+        self.buffer_instances = int(os.environ['CF_BUFFER_INSTANCES'])
 
 
 class ScheduledJobApp(App):
@@ -183,6 +184,7 @@ class AutoScaler:
         print('Highest request count (5 min): {}'.format(highest_request_count))
 
         desired_instance_count = int(math.ceil(highest_request_count / float(app.request_per_instance)))
+        desired_instance_count += app.buffer_instances
         self.statsd_client.gauge("{}.request-count".format(app.name), highest_request_count)
         self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
 

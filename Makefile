@@ -25,7 +25,7 @@ preview:
 	$(eval export CF_MAX_INSTANCE_COUNT_LOW=1)
 	$(eval export CF_MIN_INSTANCE_COUNT_HIGH=1)
 	$(eval export CF_MIN_INSTANCE_COUNT_LOW=1)
-	$(eval export CF_BUFFER_INSTANCES=1)
+	$(eval export CF_BUFFER_INSTANCES=0)
 	$(eval export STATSD_ENABLED=False)
 	@true
 

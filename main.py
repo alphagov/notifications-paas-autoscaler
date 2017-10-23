@@ -33,6 +33,7 @@ class ELBApp(App):
         self.load_balancer_name = load_balancer_name
         self.request_per_instance = request_per_instance
         self.buffer_instances = int(os.environ['CF_BUFFER_INSTANCES'])
+        self.max_instance_count += self.buffer_instances
 
 
 class ScheduledJobApp(App):

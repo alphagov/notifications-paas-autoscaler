@@ -18,6 +18,7 @@ class App:
         self.name = name
         self.min_instance_count = min_instance_count
         self.max_instance_count = max_instance_count
+        self.buffer_instances = 0
 
 
 class SQSApp(App):
@@ -33,7 +34,6 @@ class ELBApp(App):
         self.load_balancer_name = load_balancer_name
         self.request_per_instance = request_per_instance
         self.buffer_instances = int(os.environ['CF_BUFFER_INSTANCES'])
-        self.max_instance_count += self.buffer_instances
 
 
 class ScheduledJobApp(App):
@@ -185,7 +185,6 @@ class AutoScaler:
         print('Highest request count (5 min): {}'.format(highest_request_count))
 
         desired_instance_count = int(math.ceil(highest_request_count / float(app.request_per_instance)))
-        desired_instance_count += app.buffer_instances
         self.statsd_client.gauge("{}.request-count".format(app.name), highest_request_count)
         self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
 
@@ -218,6 +217,9 @@ class AutoScaler:
     def scale_paas_apps(self, app, paas_app, current_instance_count, desired_instance_count):
         desired_instance_count = min(app.max_instance_count, desired_instance_count)
         desired_instance_count = max(app.min_instance_count, desired_instance_count)
+
+        print('Desired instance count: {} ({} + {})'.format(desired_instance_count + app.buffer_instances, desired_instance_count, app.buffer_instances))
+        desired_instance_count += app.buffer_instances
 
         if current_instance_count == desired_instance_count:
             self.statsd_client.gauge("{}.instance-count".format(app.name), current_instance_count)

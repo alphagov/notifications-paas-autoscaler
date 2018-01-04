@@ -32,6 +32,7 @@ preview:
 staging:
 	$(eval export CF_SPACE=staging)
 	$(eval export SQS_QUEUE_PREFIX=staging)
+	$(eval export CF_MAX_INSTANCE_COUNT_V_HIGH=30)
 	$(eval export CF_MAX_INSTANCE_COUNT_HIGH=20)
 	$(eval export CF_MAX_INSTANCE_COUNT_LOW=5)
 	$(eval export CF_MIN_INSTANCE_COUNT_HIGH=4)

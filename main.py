@@ -319,7 +319,7 @@ scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-sender', 250, 
 scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-research', 250, min_instance_count_low, max_instance_count_low))
 scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-priority', 250, min_instance_count_low, max_instance_count_low))
 scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-periodic', 250, min_instance_count_low, max_instance_count_low))
-scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-receipts', 250, min_instance_count_low, max_instance_count_low))
+scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-receipts', 250, min_instance_count_low, max_instance_count_v_high))
 
 autoscaler = AutoScaler(sqs_apps, elb_apps, scheduled_job_apps)
 autoscaler.run()

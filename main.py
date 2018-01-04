@@ -293,6 +293,7 @@ class AutoScaler:
             self.scheduler.run()
 
 
+max_instance_count_v_high = int(os.environ['CF_MAX_INSTANCE_COUNT_V_HIGH'])
 max_instance_count_high = int(os.environ['CF_MAX_INSTANCE_COUNT_HIGH'])
 max_instance_count_low = int(os.environ['CF_MAX_INSTANCE_COUNT_LOW'])
 min_instance_count_high = int(os.environ['CF_MIN_INSTANCE_COUNT_HIGH'])
@@ -306,7 +307,7 @@ sqs_apps.append(SQSApp('notify-delivery-worker-sender', ['send-sms-tasks', 'send
 sqs_apps.append(SQSApp('notify-delivery-worker-research', ['research-mode-tasks'], 250, min_instance_count_low, max_instance_count_low))
 sqs_apps.append(SQSApp('notify-delivery-worker-priority', ['priority-tasks'], 250, min_instance_count_low, max_instance_count_low))
 sqs_apps.append(SQSApp('notify-delivery-worker-periodic', ['periodic-tasks', 'statistics-tasks'], 250, min_instance_count_low, max_instance_count_low))
-sqs_apps.append(SQSApp('notify-delivery-worker-receipts', ['ses-callbacks'], 250, min_instance_count_low, max_instance_count_low))
+sqs_apps.append(SQSApp('notify-delivery-worker-receipts', ['ses-callbacks'], 250, min_instance_count_low, max_instance_count_v_high))
 
 elb_apps = []
 elb_apps.append(ELBApp('notify-api', 'notify-paas-proxy', 1500, min_instance_count_high, max_instance_count_high, buffer_instances))

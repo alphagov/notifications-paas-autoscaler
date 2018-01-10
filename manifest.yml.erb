@@ -25,5 +25,4 @@ applications:
       CF_BUFFER_INSTANCES: <%= ENV.fetch("CF_BUFFER_INSTANCES", "1") %>
     services:
       - notify-paas-autoscaler
-      - hosted-graphite
       - notify-db

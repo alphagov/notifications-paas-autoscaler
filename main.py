@@ -310,7 +310,7 @@ sqs_apps.append(SQSApp('notify-delivery-worker-periodic', ['periodic-tasks', 'st
 sqs_apps.append(SQSApp('notify-delivery-worker-receipts', ['ses-callbacks'], 250, min_instance_count_low, max_instance_count_v_high))
 
 elb_apps = []
-elb_apps.append(ELBApp('notify-api', 'notify-paas-proxy', 1500, min_instance_count_high, max_instance_count_high, buffer_instances))
+elb_apps.append(ELBApp('notify-api', 'notify-paas-proxy', 750, min_instance_count_high, max_instance_count_high, buffer_instances))
 
 scheduled_job_apps = []
 scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-database', 250, min_instance_count_low, max_instance_count_high))

@@ -49,6 +49,8 @@ class AutoScaler:
         self.scheduled_job_apps = scheduled_job_apps
 
         self.schedule_interval = int(os.environ['SCHEDULE_INTERVAL']) + 0.0
+        self.cooldown_seconds_after_scale_up = int(os.environ['COOLDOWN_SECONDS_AFTER_SCALE_UP'])
+        self.cooldown_seconds_after_scale_down = int(os.environ['COOLDOWN_SECONDS_AFTER_SCALE_DOWN'])
         self.schedule_delay = random.random() * self.schedule_interval
         self.scheduler = sched.scheduler(time.time, time.sleep)
 
@@ -259,14 +261,16 @@ class AutoScaler:
         if not self.last_scale_up.get(app_name):
             self.last_scale_up[app_name] = datetime.datetime.now()
 
-        return self.last_scale_up[app_name] + datetime.timedelta(minutes=5) > datetime.datetime.now()
+        return (self.last_scale_up[app_name] + datetime.timedelta(seconds=self.COOLDOWN_SECONDS_AFTER_SCALE_UP) >
+                datetime.datetime.now())
 
     def recent_scale_down(self, app_name):
         # if we redeployed the app and we lost the last scale down time
         if not self.last_scale_down.get(app_name):
             self.last_scale_down[app_name] = datetime.datetime.now()
 
-        return self.last_scale_down[app_name] + datetime.timedelta(minutes=5) > datetime.datetime.now()
+        return (self.last_scale_down[app_name] + datetime.timedelta(seconds=self.COOLDOWN_SECONDS_AFTER_SCALE_DOWN) >
+                datetime.datetime.now())
 
     def schedule(self):
         current_time = time.time()

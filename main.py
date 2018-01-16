@@ -78,6 +78,7 @@ class AutoScaler:
         self.statsd_client = StatsdClient()
         self.statsd_client.init_app(self)
         self.last_scale_up = {}
+        self.last_scale_down = {}
 
     def get_cloudfoundry_client(self):
         if self.cf_client is None:
@@ -232,17 +233,18 @@ class AutoScaler:
             self.last_scale_up[app.name] = datetime.datetime.now()
 
         if is_scale_down:
-            # if we redeployed the app and we lost the last scale up time
-            if not self.last_scale_up.get(app.name):
-                self.last_scale_up[app.name] = datetime.datetime.now()
-
-            if self.last_scale_up[app.name] + datetime.timedelta(minutes=5) > datetime.datetime.now():
+            if self.recent_scale_up(app.name):
                 print("Skipping scale down due to recent scale up event")
+                return
+
+            if self.recent_scale_down(app.name):
+                print("Skipping scale down due to a recent scale down event")
                 return
 
             # Make sure we don't remove more than 1 instance at a time, and only downscale when under 1000 messages
             if current_instance_count - desired_instance_count >= 2:
                 desired_instance_count = current_instance_count - 1
+                self.last_scale_down[app.name] = datetime.datetime.now()
 
         print('Current/desired instance count: {}/{}'.format(current_instance_count, desired_instance_count))
         print('Scaling {} from {} to {}'.format(app.name, current_instance_count, desired_instance_count))
@@ -251,6 +253,20 @@ class AutoScaler:
             self.cf_client.apps._update(paas_app['guid'], {'instances': desired_instance_count})
         except BaseException as e:
             print('Failed to scale {}: {}'.format(app.name, str(e)))
+
+    def recent_scale_up(self, app_name):
+        # if we redeployed the app and we lost the last scale up time
+        if not self.last_scale_up.get(app_name):
+            self.last_scale_up[app_name] = datetime.datetime.now()
+
+        return self.last_scale_up[app_name] + datetime.timedelta(minutes=5) > datetime.datetime.now()
+
+    def recent_scale_down(self, app_name):
+        # if we redeployed the app and we lost the last scale down time
+        if not self.last_scale_down.get(app_name):
+            self.last_scale_down[app_name] = datetime.datetime.now()
+
+        return self.last_scale_down[app_name] + datetime.timedelta(minutes=5) > datetime.datetime.now()
 
     def schedule(self):
         current_time = time.time()

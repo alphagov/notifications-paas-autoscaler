@@ -235,11 +235,11 @@ class AutoScaler:
             self.last_scale_up[app.name] = datetime.datetime.now()
 
         if is_scale_down:
-            if self.recent_scale_up(app.name):
+            if self.recent_scale(app.name, self.last_scale_up, self.cooldown_seconds_after_scale_up):
                 print("Skipping scale down due to recent scale up event")
                 return
 
-            if self.recent_scale_down(app.name):
+            if self.recent_scale(app.name, self.last_scale_down, self.cooldown_seconds_after_scale_down):
                 print("Skipping scale down due to a recent scale down event")
                 return
 
@@ -256,21 +256,12 @@ class AutoScaler:
         except BaseException as e:
             print('Failed to scale {}: {}'.format(app.name, str(e)))
 
-    def recent_scale_up(self, app_name):
-        # if we redeployed the app and we lost the last scale up time
-        if not self.last_scale_up.get(app_name):
-            self.last_scale_up[app_name] = datetime.datetime.now()
+    def recent_scale(self, app_name, last_scale, timeout):
+        # if we redeployed the app and we lost the last scale time
+        if not last_scale.get(app_name):
+            last_scale[app_name] = datetime.datetime.now()
 
-        return (self.last_scale_up[app_name] + datetime.timedelta(seconds=self.COOLDOWN_SECONDS_AFTER_SCALE_UP) >
-                datetime.datetime.now())
-
-    def recent_scale_down(self, app_name):
-        # if we redeployed the app and we lost the last scale down time
-        if not self.last_scale_down.get(app_name):
-            self.last_scale_down[app_name] = datetime.datetime.now()
-
-        return (self.last_scale_down[app_name] + datetime.timedelta(seconds=self.COOLDOWN_SECONDS_AFTER_SCALE_DOWN) >
-                datetime.datetime.now())
+        return datetime.datetime.now() - datetime.timedelta(seconds=timeout) > last_scale[app_name]
 
     def schedule(self):
         current_time = time.time()

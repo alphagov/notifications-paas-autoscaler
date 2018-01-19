@@ -295,6 +295,7 @@ class AutoScaler:
 
 max_instance_count_v_high = int(os.environ['CF_MAX_INSTANCE_COUNT_V_HIGH'])
 max_instance_count_high = int(os.environ['CF_MAX_INSTANCE_COUNT_HIGH'])
+max_instance_count_medium = int(os.environ['CF_MAX_INSTANCE_COUNT_MEDIUM'])
 max_instance_count_low = int(os.environ['CF_MAX_INSTANCE_COUNT_LOW'])
 min_instance_count_high = int(os.environ['CF_MIN_INSTANCE_COUNT_HIGH'])
 min_instance_count_low = int(os.environ['CF_MIN_INSTANCE_COUNT_LOW'])
@@ -308,6 +309,7 @@ sqs_apps.append(SQSApp('notify-delivery-worker-research', ['research-mode-tasks'
 sqs_apps.append(SQSApp('notify-delivery-worker-priority', ['priority-tasks'], 250, min_instance_count_low, max_instance_count_low))
 sqs_apps.append(SQSApp('notify-delivery-worker-periodic', ['periodic-tasks', 'statistics-tasks'], 250, min_instance_count_low, max_instance_count_low))
 sqs_apps.append(SQSApp('notify-delivery-worker-receipts', ['ses-callbacks'], 250, min_instance_count_low, max_instance_count_v_high))
+sqs_apps.append(SQSApp('notify-template-preview', ['create-letters-pdf-tasks'], 10, min_instance_count_low, max_instance_count_medium))
 
 elb_apps = []
 elb_apps.append(ELBApp('notify-api', 'notify-paas-proxy', 1500, min_instance_count_high, max_instance_count_high, buffer_instances))
@@ -320,6 +322,7 @@ scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-research', 250
 scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-priority', 250, min_instance_count_low, max_instance_count_low))
 scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-periodic', 250, min_instance_count_low, max_instance_count_low))
 scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-receipts', 250, min_instance_count_low, max_instance_count_v_high))
+scheduled_job_apps.append(ScheduledJobApp('notify-template-preview', 10, min_instance_count_low, max_instance_count_medium))
 
 autoscaler = AutoScaler(sqs_apps, elb_apps, scheduled_job_apps)
 autoscaler.run()

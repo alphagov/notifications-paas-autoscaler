@@ -261,7 +261,7 @@ class AutoScaler:
         if not last_scale.get(app_name):
             last_scale[app_name] = datetime.datetime.now()
 
-        return datetime.datetime.now() - datetime.timedelta(seconds=timeout) > last_scale[app_name]
+        return last_scale[app_name] > datetime.datetime.now() - datetime.timedelta(seconds=timeout)
 
     def schedule(self):
         current_time = time.time()

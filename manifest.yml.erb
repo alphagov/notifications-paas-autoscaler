@@ -11,6 +11,8 @@ applications:
     env:
       AWS_REGION: eu-west-1
       SCHEDULE_INTERVAL: 20
+      COOLDOWN_SECONDS_AFTER_SCALE_UP: 300
+      COOLDOWN_SECONDS_AFTER_SCALE_DOWN: 60
       CF_API_URL: https://api.cloud.service.gov.uk
       CF_ORG: govuk-notify
       CF_SPACE: <%= ENV.fetch("CF_SPACE") %>

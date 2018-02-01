@@ -31,6 +31,8 @@ class SQSApp(App):
 class ELBApp(App):
     def __init__(self, name, load_balancer_name, request_per_instance, min_instance_count,
                  max_instance_count, buffer_instances):
+        cf_space = os.environ['CF_SPACE']
+        min_instance_count = 10 if cf_space == "production" else min_instance_count
         super().__init__(name, min_instance_count, max_instance_count, buffer_instances)
         self.load_balancer_name = load_balancer_name
         self.request_per_instance = request_per_instance
@@ -323,7 +325,7 @@ sqs_apps.append(SQSApp('notify-delivery-worker-receipts', ['ses-callbacks'], 250
 sqs_apps.append(SQSApp('notify-template-preview', ['create-letters-pdf-tasks'], 10, min_instance_count_low, max_instance_count_medium))
 
 elb_apps = []
-elb_apps.append(ELBApp('notify-api', 'notify-paas-proxy', 1500, min_instance_count_high, max_instance_count_high, buffer_instances))
+elb_apps.append(ELBApp('notify-api', 'notify-paas-proxy', 1250, min_instance_count_high, max_instance_count_high, buffer_instances))
 
 scheduled_job_apps = []
 scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-database', 250, min_instance_count_low, max_instance_count_high))

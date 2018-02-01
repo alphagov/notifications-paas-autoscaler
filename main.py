@@ -31,6 +31,8 @@ class SQSApp(App):
 class ELBApp(App):
     def __init__(self, name, load_balancer_name, request_per_instance, min_instance_count,
                  max_instance_count, buffer_instances):
+        cf_space = os.environ['CF_SPACE']
+        min_instance_count = 10 if cf_space == "production" else min_instance_count
         super().__init__(name, min_instance_count, max_instance_count, buffer_instances)
         self.load_balancer_name = load_balancer_name
         self.request_per_instance = request_per_instance

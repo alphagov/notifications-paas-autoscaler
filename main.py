@@ -214,8 +214,8 @@ class AutoScaler:
                 return items_count
 
     def scale_schedule_job_app(self, app, paas_app, scheduled_items):
-        # use only a third of the items because not everything gets put on the queue at once
-        scale_items = scheduled_items / 3
+        # use only half of the items because not everything gets put on the queue at once
+        scale_items = scheduled_items / 2
         desired_instance_count = int(math.ceil(scale_items / float(app.items_per_instance)))
         self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
 
@@ -245,7 +245,7 @@ class AutoScaler:
                 print("Skipping scale down due to a recent scale down event")
                 return
 
-            # Make sure we don't remove more than 1 instance at a time, and only downscale when under 1000 messages
+            # Make sure we don't remove more than 1 instance at a time
             if current_instance_count - desired_instance_count >= 2:
                 desired_instance_count = current_instance_count - 1
                 self.last_scale_down[app.name] = datetime.datetime.now()
@@ -317,7 +317,7 @@ buffer_instances = int(os.environ['CF_BUFFER_INSTANCES'])
 sqs_apps = []
 sqs_apps.append(SQSApp('notify-delivery-worker-database', ['database-tasks'], 250, min_instance_count_low, max_instance_count_high))
 sqs_apps.append(SQSApp('notify-delivery-worker', ['notify-internal-tasks', 'retry-tasks', 'job-tasks'], 250, min_instance_count_low, max_instance_count_low))
-sqs_apps.append(SQSApp('notify-delivery-worker-sender', ['send-sms-tasks', 'send-email-tasks'], 250, min_instance_count_high, max_instance_count_high))
+sqs_apps.append(SQSApp('notify-delivery-worker-sender', ['send-sms-tasks', 'send-email-tasks'], 110, min_instance_count_high, max_instance_count_high))
 sqs_apps.append(SQSApp('notify-delivery-worker-research', ['research-mode-tasks'], 250, min_instance_count_low, max_instance_count_low))
 sqs_apps.append(SQSApp('notify-delivery-worker-priority', ['priority-tasks'], 250, min_instance_count_low, max_instance_count_low))
 sqs_apps.append(SQSApp('notify-delivery-worker-periodic', ['periodic-tasks', 'statistics-tasks'], 250, min_instance_count_low, max_instance_count_low))
@@ -330,7 +330,7 @@ elb_apps.append(ELBApp('notify-api', 'notify-paas-proxy', 2000, min_instance_cou
 scheduled_job_apps = []
 scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-database', 250, min_instance_count_low, max_instance_count_high))
 scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker', 250, min_instance_count_low, max_instance_count_low))
-scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-sender', 250, min_instance_count_high, max_instance_count_high))
+scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-sender', 110, min_instance_count_high, max_instance_count_high))
 scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-research', 250, min_instance_count_low, max_instance_count_low))
 scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-priority', 250, min_instance_count_low, max_instance_count_low))
 scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-periodic', 250, min_instance_count_low, max_instance_count_low))

@@ -322,6 +322,7 @@ sqs_apps.append(SQSApp('notify-delivery-worker-research', ['research-mode-tasks'
 sqs_apps.append(SQSApp('notify-delivery-worker-priority', ['priority-tasks'], 250, min_instance_count_low, max_instance_count_low))
 sqs_apps.append(SQSApp('notify-delivery-worker-periodic', ['periodic-tasks', 'statistics-tasks'], 250, min_instance_count_low, max_instance_count_low))
 sqs_apps.append(SQSApp('notify-delivery-worker-receipts', ['ses-callbacks'], 250, min_instance_count_low, max_instance_count_v_high))
+sqs_apps.append(SQSApp('notify-delivery-worker-service-callbacks', ['service-callbacks'], 500, min_instance_count_low, max_instance_count_low))
 sqs_apps.append(SQSApp('notify-template-preview', ['create-letters-pdf-tasks'], 10, min_instance_count_low, max_instance_count_medium))
 
 elb_apps = []
@@ -335,6 +336,7 @@ scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-research', 250
 scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-priority', 250, min_instance_count_low, max_instance_count_low))
 scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-periodic', 250, min_instance_count_low, max_instance_count_low))
 scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-receipts', 250, min_instance_count_low, max_instance_count_v_high))
+scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-service-callbacks', 500, min_instance_count_low, max_instance_count_low))
 scheduled_job_apps.append(ScheduledJobApp('notify-template-preview', 10, min_instance_count_low, max_instance_count_medium))
 
 autoscaler = AutoScaler(sqs_apps, elb_apps, scheduled_job_apps)

@@ -9,6 +9,7 @@ import sched
 import time
 
 from cloudfoundry_client.client import CloudFoundryClient
+import yaml
 
 from notifications_utils.clients.statsd.statsd_client import StatsdClient
 
@@ -51,6 +52,7 @@ class AutoScaler:
         self.scheduled_job_apps = scheduled_job_apps
 
         self.schedule_interval = int(os.environ['SCHEDULE_INTERVAL']) + 0.0
+        self.scheduled_scale_factor = float(os.environ['SCHEDULED_SCALE_FACTOR'])
         self.cooldown_seconds_after_scale_up = int(os.environ['COOLDOWN_SECONDS_AFTER_SCALE_UP'])
         self.cooldown_seconds_after_scale_down = int(os.environ['COOLDOWN_SECONDS_AFTER_SCALE_DOWN'])
         self.schedule_delay = random.random() * self.schedule_interval
@@ -83,6 +85,35 @@ class AutoScaler:
         self.statsd_client.init_app(self)
         self.last_scale_up = {}
         self.last_scale_down = {}
+
+    def load_schedule(self):
+        try:
+            schedule = None
+            with open("schedule.yml") as f:
+                schedule = yaml.load(f)
+        except Exception as e:
+            print(e)
+        else:
+            self.schedule = schedule
+
+    def should_scale_on_schedule(self, app_name):
+        if app_name not in self.schedule:
+            return False
+
+        now = datetime.datetime.now()
+        week_part = "workdays" if now.weekday() in range(5) else "weekends"  # Monday = 0, sunday = 6
+
+        if week_part not in self.schedule[app_name]:
+            return False
+
+        for time_range_string in self.schedule[app_name][week_part]:
+            # convert the time range string to time objects
+            start, end = [datetime.datetime.strptime(i, '%H:%M').time() for i in time_range_string.split('-')]
+
+            if datetime.datetime.combine(now, start) <= now <= datetime.datetime.combine(now, end):
+                return True
+
+        return False
 
     def get_cloudfoundry_client(self):
         if self.cf_client is None:
@@ -151,9 +182,15 @@ class AutoScaler:
 
     def scale_sqs_app(self, app, paas_app):
         print('Processing {}'.format(app.name))
+        if self.should_scale_on_schedule(app.name):
+            scheduled_desired_instance_count = int(math.ceil(app.max_instance_count * self.scheduled_scale_factor))
+            print("{} to scale to {} on schedule".format(app.name, scheduled_desired_instance_count))
+
         total_message_count = self.get_total_message_count(app.queues)
         print('Total message count: {}'.format(total_message_count))
-        desired_instance_count = int(math.ceil(total_message_count / float(app.messages_per_instance)))
+        queue_size_desired_instance_count = int(math.ceil(total_message_count / float(app.messages_per_instance)))
+
+        desired_instance_count = max(scheduled_desired_instance_count, queue_size_desired_instance_count)
         self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
 
     def get_load_balancer_request_counts(self, load_balancer_name):

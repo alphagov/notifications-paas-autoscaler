@@ -2,11 +2,7 @@
 
 Autoscaling agent for the Notify PaaS applications.
 
-Runs every SCHEDULE_INTERVAL (default: 10 seconds) interval, checks some metrics and sets the desired instance count accordingly.
-
-Currently it scales the following applications:
- * notify-delivery-worker-database: we get the highest message count from the db-sms, db-email and db-letter queues and provision an instance for every 2000 messages. E.g. 10k messages mean 5 running instances.
- * notify-delivery-worker: we get the highest message count from the send-sms, send-email queues and provision an instance for every 2000 messages. E.g. 10k messages mean 5 running instances.
+Runs every `SCHEDULE_INTERVAL` (currently 5 seconds) interval, checks some metrics and sets the desired instance count accordingly.
 
 ## Installation
 

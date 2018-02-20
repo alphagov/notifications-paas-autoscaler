@@ -27,6 +27,7 @@ preview:
 	$(eval export CF_MAX_INSTANCE_COUNT_LOW=1)
 	$(eval export CF_MIN_INSTANCE_COUNT_HIGH=1)
 	$(eval export CF_MIN_INSTANCE_COUNT_LOW=1)
+	$(eval export CF_SCHEDULED_SCALE_FACTOR=0)
 	$(eval export CF_BUFFER_INSTANCES=0)
 	$(eval export STATSD_ENABLED=False)
 	@true
@@ -40,6 +41,7 @@ staging:
 	$(eval export CF_MAX_INSTANCE_COUNT_LOW=5)
 	$(eval export CF_MIN_INSTANCE_COUNT_HIGH=4)
 	$(eval export CF_MIN_INSTANCE_COUNT_LOW=2)
+	$(eval export CF_SCHEDULED_SCALE_FACTOR=0)
 	$(eval export CF_BUFFER_INSTANCES=2)
 	$(eval export STATSD_ENABLED=True)
 	@true
@@ -54,6 +56,7 @@ production:
 	$(eval export CF_MIN_INSTANCE_COUNT_HIGH=4)
 	$(eval export CF_MIN_INSTANCE_COUNT_LOW=2)
 	$(eval export CF_BUFFER_INSTANCES=2)
+	$(eval export CF_SCHEDULED_SCALE_FACTOR=0.6)
 	$(eval export STATSD_ENABLED=True)
 	@true
 

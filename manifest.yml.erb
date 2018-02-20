@@ -11,7 +11,7 @@ applications:
     env:
       AWS_REGION: eu-west-1
       SCHEDULE_INTERVAL: 5
-      SCHEDULED_SCALE_FACTOR: 0.6
+      SCHEDULED_SCALE_FACTOR: <%= ENV.fetch("CF_SCHEDULED_SCALE_FACTOR", "0") %>
       COOLDOWN_SECONDS_AFTER_SCALE_UP: 300
       COOLDOWN_SECONDS_AFTER_SCALE_DOWN: 60
       CF_API_URL: https://api.cloud.service.gov.uk

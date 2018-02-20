@@ -1,6 +1,7 @@
 import boto3
 import datetime
 import json
+import logging
 import math
 import os
 import psycopg2
@@ -92,7 +93,9 @@ class AutoScaler:
             with open("schedule.yml") as f:
                 schedule = yaml.load(f)
         except Exception as e:
-            print(e)
+            msg = "Could not load schedule: {}".format(str(e))
+            logging.error(msg)
+            print(msg)
         else:
             self.schedule = schedule
 
@@ -123,7 +126,9 @@ class AutoScaler:
                 cf_client.init_with_user_credentials(self.cf_username, self.cf_password)
                 self.cf_client = cf_client
             except BaseException as e:
-                print('Failed to authenticate: {}, waiting 5 minutes and exiting'.format(str(e)))
+                msg = 'Failed to authenticate: {}, waiting 5 minutes and exiting'.format(str(e))
+                logging.error(msg)
+                print(msg)
                 # The sleep is added to avoid automatically banning the user for too many failed login attempts
                 time.sleep(5 * 60)
 
@@ -151,7 +156,9 @@ class AutoScaler:
                                 'instances': app['entity']['instances']
                             }
             except BaseException as e:
-                print('Failed to get stats for app {}: {}'.format(app['entity']['name'], str(e)))
+                msg = 'Failed to get stats for app {}: {}'.format(app['entity']['name'], str(e))
+                logging.error(msg)
+                print(msg)
                 self.reset_cloudfoundry_client()
 
         return instances
@@ -293,7 +300,9 @@ class AutoScaler:
         try:
             self.cf_client.apps._update(paas_app['guid'], {'instances': desired_instance_count})
         except BaseException as e:
-            print('Failed to scale {}: {}'.format(app.name, str(e)))
+            msg = 'Failed to scale {}: {}'.format(app.name, str(e))
+            logging.error(msg)
+            print(msg)
 
     def recent_scale(self, app_name, last_scale, timeout):
         # if we redeployed the app and we lost the last scale time
@@ -374,5 +383,6 @@ scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-periodic', 250
 scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-receipts', 250, min_instance_count_low, max_instance_count_v_high))
 scheduled_job_apps.append(ScheduledJobApp('notify-template-preview', 10, min_instance_count_low, max_instance_count_medium))
 
+logging.basicConfig(filename='/home/vcap/logs/app.log', level=logging.WARNING)
 autoscaler = AutoScaler(sqs_apps, elb_apps, scheduled_job_apps)
 autoscaler.run()

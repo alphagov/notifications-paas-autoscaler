@@ -364,7 +364,7 @@ max_instance_count_medium = int(os.environ['CF_MAX_INSTANCE_COUNT_MEDIUM'])
 max_instance_count_low = int(os.environ['CF_MAX_INSTANCE_COUNT_LOW'])
 min_instance_count_high = int(os.environ['CF_MIN_INSTANCE_COUNT_HIGH'])
 min_instance_count_low = int(os.environ['CF_MIN_INSTANCE_COUNT_LOW'])
-buffer_instances = int(os.environ['CF_BUFFER_INSTANCES'])
+buffer_instances = int(os.environ['BUFFER_INSTANCES'])
 
 sqs_apps = []
 sqs_apps.append(SQSApp('notify-delivery-worker-database', ['database-tasks'], 250, min_instance_count_low, max_instance_count_high))

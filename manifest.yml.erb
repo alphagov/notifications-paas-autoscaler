@@ -26,7 +26,7 @@ applications:
       CF_MAX_INSTANCE_COUNT_MEDIUM: <%= ENV.fetch("CF_MAX_INSTANCE_COUNT_MEDIUM", "1") %>
       CF_MAX_INSTANCE_COUNT_HIGH: <%= ENV.fetch("CF_MAX_INSTANCE_COUNT_HIGH", "1") %>
       CF_MAX_INSTANCE_COUNT_V_HIGH: <%= ENV.fetch("CF_MAX_INSTANCE_COUNT_V_HIGH", "1") %>
-      CF_BUFFER_INSTANCES: <%= ENV.fetch("CF_BUFFER_INSTANCES", "1") %>
+      BUFFER_INSTANCES: <%= ENV.fetch("CF_BUFFER_INSTANCES", "1") %>
     services:
       - notify-paas-autoscaler
       - notify-db

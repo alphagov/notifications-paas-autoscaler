@@ -86,30 +86,31 @@ class AutoScaler:
         self.statsd_client.init_app(self)
         self.last_scale_up = {}
         self.last_scale_down = {}
+        self.load_schedule()
 
     def load_schedule(self):
         try:
-            schedule = None
+            autoscaler_schedule = None
             with open("schedule.yml") as f:
-                schedule = yaml.load(f)
+                autoscaler_schedule = yaml.load(f)
         except Exception as e:
             msg = "Could not load schedule: {}".format(str(e))
             logging.error(msg)
             print(msg)
         else:
-            self.schedule = schedule
+            self.autoscaler_schedule = autoscaler_schedule
 
     def should_scale_on_schedule(self, app_name):
-        if app_name not in self.schedule:
+        if app_name not in self.autoscaler_schedule:
             return False
 
         now = datetime.datetime.now()
         week_part = "workdays" if now.weekday() in range(5) else "weekends"  # Monday = 0, sunday = 6
 
-        if week_part not in self.schedule[app_name]:
+        if week_part not in self.autoscaler_schedule[app_name]:
             return False
 
-        for time_range_string in self.schedule[app_name][week_part]:
+        for time_range_string in self.autoscaler_schedule[app_name][week_part]:
             # convert the time range string to time objects
             start, end = [datetime.datetime.strptime(i, '%H:%M').time() for i in time_range_string.split('-')]
 
@@ -189,6 +190,7 @@ class AutoScaler:
 
     def scale_sqs_app(self, app, paas_app):
         print('Processing {}'.format(app.name))
+        scheduled_desired_instance_count = 0
         if self.should_scale_on_schedule(app.name):
             scheduled_desired_instance_count = int(math.ceil(app.max_instance_count * self.scheduled_scale_factor))
             print("{} to scale to {} on schedule".format(app.name, scheduled_desired_instance_count))

@@ -4,3 +4,8 @@ notify-delivery-worker-sender:
     - 08:00-10:00
     - 12:00-13:00
     - 16:00-17:30
+notify-api:
+  workdays:
+    - 08:00-19:00
+  weekends:
+    - 09:00-17:00

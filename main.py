@@ -7,6 +7,7 @@ import os
 import psycopg2
 import random
 import sched
+import sys
 import time
 
 from cloudfoundry_client.client import CloudFoundryClient
@@ -87,14 +88,14 @@ class AutoScaler:
         self.load_schedule()
 
     def load_schedule(self):
+        self.autoscaler_schedule = {}
         try:
             autoscaler_schedule = None
             with open("schedule.yml") as f:
-                autoscaler_schedule = yaml.load(f)
+                autoscaler_schedule = yaml.safe_load(f)
         except Exception as e:
             msg = "Could not load schedule: {}".format(str(e))
             logging.error(msg)
-            print(msg)
         else:
             self.autoscaler_schedule = autoscaler_schedule
 
@@ -127,7 +128,6 @@ class AutoScaler:
             except BaseException as e:
                 msg = 'Failed to authenticate: {}, waiting 5 minutes and exiting'.format(str(e))
                 logging.error(msg)
-                print(msg)
                 # The sleep is added to avoid automatically banning the user for too many failed login attempts
                 time.sleep(5 * 60)
 
@@ -157,7 +157,6 @@ class AutoScaler:
             except BaseException as e:
                 msg = 'Failed to get stats for app {}: {}'.format(app['entity']['name'], str(e))
                 logging.error(msg)
-                print(msg)
                 self.reset_cloudfoundry_client()
 
         return instances
@@ -308,7 +307,6 @@ class AutoScaler:
         except BaseException as e:
             msg = 'Failed to scale {}: {}'.format(app.name, str(e))
             logging.error(msg)
-            print(msg)
 
     def recent_scale(self, app_name, last_scale, timeout):
         # if we redeployed the app and we lost the last scale time
@@ -389,6 +387,11 @@ scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-periodic', 250
 scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-receipts', 250, min_instance_count_low, max_instance_count_v_high))
 scheduled_job_apps.append(ScheduledJobApp('notify-template-preview', 10, min_instance_count_low, max_instance_count_medium))
 
-logging.basicConfig(filename='/home/vcap/logs/app.log', level=logging.WARNING)
+logging.basicConfig(
+    level=logging.WARNING,
+    handlers=[
+        logging.FileHandler('/home/vcap/logs/app.log'),
+        logging.StreamHandler(sys.stdout),
+    ])
 autoscaler = AutoScaler(sqs_apps, elb_apps, scheduled_job_apps)
 autoscaler.run()

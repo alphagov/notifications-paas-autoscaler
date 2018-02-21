@@ -1,14 +1,17 @@
 import boto3
 import datetime
 import json
+import logging
 import math
 import os
 import psycopg2
 import random
 import sched
+import sys
 import time
 
 from cloudfoundry_client.client import CloudFoundryClient
+import yaml
 
 from notifications_utils.clients.statsd.statsd_client import StatsdClient
 
@@ -31,8 +34,6 @@ class SQSApp(App):
 class ELBApp(App):
     def __init__(self, name, load_balancer_name, request_per_instance, min_instance_count,
                  max_instance_count, buffer_instances):
-        cf_space = os.environ['CF_SPACE']
-        min_instance_count = 10 if cf_space == "production" else min_instance_count
         super().__init__(name, min_instance_count, max_instance_count, buffer_instances)
         self.load_balancer_name = load_balancer_name
         self.request_per_instance = request_per_instance
@@ -51,6 +52,7 @@ class AutoScaler:
         self.scheduled_job_apps = scheduled_job_apps
 
         self.schedule_interval = int(os.environ['SCHEDULE_INTERVAL']) + 0.0
+        self.scheduled_scale_factor = float(os.environ['SCHEDULED_SCALE_FACTOR'])
         self.cooldown_seconds_after_scale_up = int(os.environ['COOLDOWN_SECONDS_AFTER_SCALE_UP'])
         self.cooldown_seconds_after_scale_down = int(os.environ['COOLDOWN_SECONDS_AFTER_SCALE_DOWN'])
         self.schedule_delay = random.random() * self.schedule_interval
@@ -83,6 +85,38 @@ class AutoScaler:
         self.statsd_client.init_app(self)
         self.last_scale_up = {}
         self.last_scale_down = {}
+        self.load_schedule()
+
+    def load_schedule(self):
+        self.autoscaler_schedule = {}
+        try:
+            autoscaler_schedule = None
+            with open("schedule.yml") as f:
+                autoscaler_schedule = yaml.safe_load(f)
+        except Exception as e:
+            msg = "Could not load schedule: {}".format(str(e))
+            logging.error(msg)
+        else:
+            self.autoscaler_schedule = autoscaler_schedule
+
+    def should_scale_on_schedule(self, app_name):
+        if app_name not in self.autoscaler_schedule:
+            return False
+
+        now = datetime.datetime.now()
+        week_part = "workdays" if now.weekday() in range(5) else "weekends"  # Monday = 0, sunday = 6
+
+        if week_part not in self.autoscaler_schedule[app_name]:
+            return False
+
+        for time_range_string in self.autoscaler_schedule[app_name][week_part]:
+            # convert the time range string to time objects
+            start, end = [datetime.datetime.strptime(i, '%H:%M').time() for i in time_range_string.split('-')]
+
+            if datetime.datetime.combine(now, start) <= now <= datetime.datetime.combine(now, end):
+                return True
+
+        return False
 
     def get_cloudfoundry_client(self):
         if self.cf_client is None:
@@ -92,7 +126,8 @@ class AutoScaler:
                 cf_client.init_with_user_credentials(self.cf_username, self.cf_password)
                 self.cf_client = cf_client
             except BaseException as e:
-                print('Failed to authenticate: {}, waiting 5 minutes and exiting'.format(str(e)))
+                msg = 'Failed to authenticate: {}, waiting 5 minutes and exiting'.format(str(e))
+                logging.error(msg)
                 # The sleep is added to avoid automatically banning the user for too many failed login attempts
                 time.sleep(5 * 60)
 
@@ -120,7 +155,8 @@ class AutoScaler:
                                 'instances': app['entity']['instances']
                             }
             except BaseException as e:
-                print('Failed to get stats for app {}: {}'.format(app['entity']['name'], str(e)))
+                msg = 'Failed to get stats for app {}: {}'.format(app['entity']['name'], str(e))
+                logging.error(msg)
                 self.reset_cloudfoundry_client()
 
         return instances
@@ -151,9 +187,16 @@ class AutoScaler:
 
     def scale_sqs_app(self, app, paas_app):
         print('Processing {}'.format(app.name))
+        scheduled_desired_instance_count = 0
+        if self.should_scale_on_schedule(app.name):
+            scheduled_desired_instance_count = int(math.ceil(app.max_instance_count * self.scheduled_scale_factor))
+            print("{} to scale to {} on schedule".format(app.name, scheduled_desired_instance_count))
+
         total_message_count = self.get_total_message_count(app.queues)
         print('Total message count: {}'.format(total_message_count))
-        desired_instance_count = int(math.ceil(total_message_count / float(app.messages_per_instance)))
+        queue_size_desired_instance_count = int(math.ceil(total_message_count / float(app.messages_per_instance)))
+
+        desired_instance_count = max(scheduled_desired_instance_count, queue_size_desired_instance_count)
         self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
 
     def get_load_balancer_request_counts(self, load_balancer_name):
@@ -180,6 +223,11 @@ class AutoScaler:
 
     def scale_elb_app(self, app, paas_app):
         print('Processing {}'.format(app.name))
+        scheduled_desired_instance_count = 0
+        if self.should_scale_on_schedule(app.name):
+            scheduled_desired_instance_count = int(math.ceil(app.max_instance_count * self.scheduled_scale_factor))
+            print("{} to scale to {} on schedule".format(app.name, scheduled_desired_instance_count))
+
         request_counts = self.get_load_balancer_request_counts(app.load_balancer_name)
         if len(request_counts) == 0:
             request_counts = [0]
@@ -189,7 +237,8 @@ class AutoScaler:
         highest_request_count = max(request_counts)
         print('Highest request count (5 min): {}'.format(highest_request_count))
 
-        desired_instance_count = int(math.ceil(highest_request_count / float(app.request_per_instance)))
+        requests_desired_instance_count = int(math.ceil(highest_request_count / float(app.request_per_instance)))
+        desired_instance_count = max(scheduled_desired_instance_count, requests_desired_instance_count)
         self.statsd_client.gauge("{}.request-count".format(app.name), highest_request_count)
         self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
 
@@ -256,7 +305,8 @@ class AutoScaler:
         try:
             self.cf_client.apps._update(paas_app['guid'], {'instances': desired_instance_count})
         except BaseException as e:
-            print('Failed to scale {}: {}'.format(app.name, str(e)))
+            msg = 'Failed to scale {}: {}'.format(app.name, str(e))
+            logging.error(msg)
 
     def recent_scale(self, app_name, last_scale, timeout):
         # if we redeployed the app and we lost the last scale time
@@ -312,7 +362,7 @@ max_instance_count_medium = int(os.environ['CF_MAX_INSTANCE_COUNT_MEDIUM'])
 max_instance_count_low = int(os.environ['CF_MAX_INSTANCE_COUNT_LOW'])
 min_instance_count_high = int(os.environ['CF_MIN_INSTANCE_COUNT_HIGH'])
 min_instance_count_low = int(os.environ['CF_MIN_INSTANCE_COUNT_LOW'])
-buffer_instances = int(os.environ['CF_BUFFER_INSTANCES'])
+buffer_instances = int(os.environ['BUFFER_INSTANCES'])
 
 sqs_apps = []
 sqs_apps.append(SQSApp('notify-delivery-worker-database', ['database-tasks'], 250, min_instance_count_low, max_instance_count_high))
@@ -337,5 +387,11 @@ scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-periodic', 250
 scheduled_job_apps.append(ScheduledJobApp('notify-delivery-worker-receipts', 250, min_instance_count_low, max_instance_count_v_high))
 scheduled_job_apps.append(ScheduledJobApp('notify-template-preview', 10, min_instance_count_low, max_instance_count_medium))
 
+logging.basicConfig(
+    level=logging.WARNING,
+    handlers=[
+        logging.FileHandler('/home/vcap/logs/app.log'),
+        logging.StreamHandler(sys.stdout),
+    ])
 autoscaler = AutoScaler(sqs_apps, elb_apps, scheduled_job_apps)
 autoscaler.run()

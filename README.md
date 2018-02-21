@@ -2,11 +2,7 @@
 
 Autoscaling agent for the Notify PaaS applications.
 
-Runs every SCHEDULE_INTERVAL (default: 10 seconds) interval, checks some metrics and sets the desired instance count accordingly.
-
-Currently it scales the following applications:
- * notify-delivery-worker-database: we get the highest message count from the db-sms, db-email and db-letter queues and provision an instance for every 2000 messages. E.g. 10k messages mean 5 running instances.
- * notify-delivery-worker: we get the highest message count from the send-sms, send-email queues and provision an instance for every 2000 messages. E.g. 10k messages mean 5 running instances.
+Runs every `SCHEDULE_INTERVAL` (currently 5 seconds) interval, checks some metrics and sets the desired instance count accordingly.
 
 ## Installation
 
@@ -17,6 +13,48 @@ make <env> cf-push
 ```
 
 Where env can be preview, staging or production.
+
+## Scheduled scaling
+
+The Autoscaler can scale the worker applications based on a schedule defined in the `schedule.yml` file.
+
+The format of the file is:
+
+```
+name-of-the-app:
+  <workdays|weekends>:
+      - HH:MM-HH:MM
+      - HH:MM-HH:MM
+      - ...
+name-of-another-app:
+  <workdays|weekends>:
+      - HH:MM-HH:MM
+      - ...
+```
+
+For example, if you need to schedule the research worker to scale on weekends between
+9 in the morning and 2 in the afternoon you would add this to the `schedule.yml`:
+
+```
+notify-delivery-worker-research:
+  weekends:
+    - 09:00-14:00
+```
+
+The Autoscaler will scale the specified apps to the number of instances equal to `SCHEDULED_SCALE_FACTOR` * `max_instance_count`
+unless some other metric requires the instance to scale to a higher number (e.g. a large scheduled job)
+
+
+## Debugging
+
+Depending on the problem you're facing you can use different approaches to get more information about it:
+
+1. You can see any events related to the autoscaler app using `cf events notify-paas-autoscaler`. This
+will show you deployments or restarts
+1. You can tail the logs with `cf logs notify-paas-autoscaler` or, if autoscaler has crashed, look into the latest logs with `cf logs notify-paas-autoscaler --latest`
+1. You can also log onto the box with `cf ssh notify-paas-autoscaler` and see if there are any exceptions logged in
+`/home/vcap/logs/app.log`
+
 
 ## Authentication credentials
 

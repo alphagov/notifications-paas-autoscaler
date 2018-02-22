@@ -187,16 +187,10 @@ class AutoScaler:
 
     def scale_sqs_app(self, app, paas_app):
         print('Processing {}'.format(app.name))
-        scheduled_desired_instance_count = 0
-        if self.should_scale_on_schedule(app.name):
-            scheduled_desired_instance_count = int(math.ceil(app.max_instance_count * self.scheduled_scale_factor))
-            print("{} to scale to {} on schedule".format(app.name, scheduled_desired_instance_count))
-
         total_message_count = self.get_total_message_count(app.queues)
         print('Total message count: {}'.format(total_message_count))
-        queue_size_desired_instance_count = int(math.ceil(total_message_count / float(app.messages_per_instance)))
+        desired_instance_count = int(math.ceil(total_message_count / float(app.messages_per_instance)))
 
-        desired_instance_count = max(scheduled_desired_instance_count, queue_size_desired_instance_count)
         self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
 
     def get_load_balancer_request_counts(self, load_balancer_name):
@@ -223,11 +217,6 @@ class AutoScaler:
 
     def scale_elb_app(self, app, paas_app):
         print('Processing {}'.format(app.name))
-        scheduled_desired_instance_count = 0
-        if self.should_scale_on_schedule(app.name):
-            scheduled_desired_instance_count = int(math.ceil(app.max_instance_count * self.scheduled_scale_factor))
-            print("{} to scale to {} on schedule".format(app.name, scheduled_desired_instance_count))
-
         request_counts = self.get_load_balancer_request_counts(app.load_balancer_name)
         if len(request_counts) == 0:
             request_counts = [0]
@@ -237,8 +226,7 @@ class AutoScaler:
         highest_request_count = max(request_counts)
         print('Highest request count (5 min): {}'.format(highest_request_count))
 
-        requests_desired_instance_count = int(math.ceil(highest_request_count / float(app.request_per_instance)))
-        desired_instance_count = max(scheduled_desired_instance_count, requests_desired_instance_count)
+        desired_instance_count = int(math.ceil(highest_request_count / float(app.request_per_instance)))
         self.statsd_client.gauge("{}.request-count".format(app.name), highest_request_count)
         self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
 
@@ -269,10 +257,20 @@ class AutoScaler:
         self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
 
     def scale_paas_apps(self, app, paas_app, current_instance_count, desired_instance_count):
+        scheduled_desired_instance_count = 0
+        if self.should_scale_on_schedule(app.name):
+            scheduled_desired_instance_count = int(math.ceil(app.max_instance_count * self.scheduled_scale_factor))
+            print("{} to scale to {} on schedule".format(app.name, scheduled_desired_instance_count))
+
+        desired_instance_count = max(desired_instance_count, scheduled_desired_instance_count)
+
         desired_instance_count = min(app.max_instance_count, desired_instance_count)
         desired_instance_count = max(app.min_instance_count, desired_instance_count)
 
-        print('Desired instance count: {} ({} + {})'.format(desired_instance_count + app.buffer_instances, desired_instance_count, app.buffer_instances))
+        print('{}: Desired instance count: {} ({} + {})'.format(
+            app.name, desired_instance_count + app.buffer_instances, desired_instance_count, app.buffer_instances))
+
+        # buffer instances can grow above the max_instance_count
         desired_instance_count += app.buffer_instances
 
         if current_instance_count == desired_instance_count:

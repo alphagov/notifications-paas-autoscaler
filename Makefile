@@ -65,3 +65,7 @@ cf-push:
 	cf target -s ${CF_SPACE}
 	cf unbind-service notify-paas-autoscaler notify-db
 	cf push -f <(make generate-manifest)
+
+.PHONY: test
+test:
+	pytest --cov=app/ tests/

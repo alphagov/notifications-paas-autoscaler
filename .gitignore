@@ -1,3 +1,6 @@
+.pytest_cache
+.coverage
+__pycache__
 *.pyc
 manifest.yml
 venv

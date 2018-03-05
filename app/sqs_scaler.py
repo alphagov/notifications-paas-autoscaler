@@ -9,9 +9,9 @@ class SqsScaler(AwsBaseScaler):
         super().__init__(**kwargs)
         self.queues = kwargs['queues'] if isinstance(kwargs['queues'], list) else [kwargs['queues']]
         self.sqs_queue_prefix = os.environ.get('SQS_QUEUE_PREFIX', '')
-        self._get_sqs_client()
+        self._init_sqs_client()
 
-    def _get_sqs_client(self):
+    def _init_sqs_client(self):
         self.sqs_client = super()._get_boto3_client('sqs', region_name=self.aws_region)
 
     def estimate_instance_count(self):

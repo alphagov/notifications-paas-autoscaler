@@ -9,7 +9,7 @@ class TestSqsScaler:
     input_attrs = {
         'min_instances': 1,
         'max_instances': 2,
-        'threshold': 1500,
+        'threshold': 250,
     }
 
     def test_init_assigns_relevant_values(self, mock_boto3):
@@ -39,16 +39,16 @@ class TestSqsScaler:
 
         sqs_client = mock_boto3.client.return_value
         sqs_client.get_queue_attributes.side_effect = [
-            {'Attributes': {'ApproximateNumberOfMessages': '100'}},
-            {'Attributes': {'ApproximateNumberOfMessages': '150'}},
+            {'Attributes': {'ApproximateNumberOfMessages': '400'}},
+            {'Attributes': {'ApproximateNumberOfMessages': '350'}},
         ]
 
         with patch.dict(os.environ, {'SQS_QUEUE_PREFIX': 'production'}):
             sqs_scaler = SqsScaler(**self.input_attrs)
             sqs_scaler.statsd_client = Mock()
-            assert sqs_scaler.estimate_instance_count() == 1
+            assert sqs_scaler.estimate_instance_count() == 2
             calls = [
-                call("productionqueue1.queue-length", 100),
-                call("productionqueue2.queue-length", 150),
+                call("productionqueue1.queue-length", 400),
+                call("productionqueue2.queue-length", 350),
             ]
             sqs_scaler.statsd_client.incr.assert_has_calls(calls)

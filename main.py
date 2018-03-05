@@ -1,10 +1,6 @@
-import boto3
 import datetime
-import json
 import logging
-import math
 import os
-import psycopg2
 import random
 import sched
 import sys
@@ -24,21 +20,6 @@ class App:
         self.buffer_instances = buffer_instances
 
 
-class SQSApp(App):
-    def __init__(self, name, queues, messages_per_instance, min_instance_count, max_instance_count):
-        super().__init__(name, min_instance_count, max_instance_count)
-        self.queues = queues
-        self.messages_per_instance = messages_per_instance
-
-
-class ELBApp(App):
-    def __init__(self, name, load_balancer_name, request_per_instance, min_instance_count,
-                 max_instance_count, buffer_instances):
-        super().__init__(name, min_instance_count, max_instance_count, buffer_instances)
-        self.load_balancer_name = load_balancer_name
-        self.request_per_instance = request_per_instance
-
-
 class ScheduledJobApp(App):
     def __init__(self, name, items_per_instance, min_instance_count, max_instance_count):
         super().__init__(name, min_instance_count, max_instance_count)
@@ -47,8 +28,6 @@ class ScheduledJobApp(App):
 
 class AutoScaler:
     def __init__(self, sqs_apps, elb_apps, scheduled_job_apps):
-        self.sqs_apps = sqs_apps
-        self.elb_apps = elb_apps
         self.scheduled_job_apps = scheduled_job_apps
 
         self.schedule_interval = int(os.environ['SCHEDULE_INTERVAL']) + 0.0
@@ -57,14 +36,6 @@ class AutoScaler:
         self.cooldown_seconds_after_scale_down = int(os.environ['COOLDOWN_SECONDS_AFTER_SCALE_DOWN'])
         self.schedule_delay = random.random() * self.schedule_interval
         self.scheduler = sched.scheduler(time.time, time.sleep)
-
-        self.aws_region = os.environ['AWS_REGION']
-        self.aws_account_id = boto3.client('sts', region_name=self.aws_region).get_caller_identity()['Account']
-
-        self.sqs_client = boto3.client('sqs', region_name=self.aws_region)
-        self.sqs_queue_prefix = os.environ['SQS_QUEUE_PREFIX']
-
-        self.cloudwatch_client = boto3.client('cloudwatch', region_name=self.aws_region)
 
         self.cf_username = os.environ['CF_USERNAME']
         self.cf_password = os.environ['CF_PASSWORD']
@@ -161,136 +132,9 @@ class AutoScaler:
 
         return instances
 
-    def get_sqs_queue_name(self, name):
-        return "{}{}".format(self.sqs_queue_prefix, name)
-
-    def get_sqs_queue_url(self, name):
-        return "https://sqs.{}.amazonaws.com/{}/{}".format(
-            self.aws_region, self.aws_account_id, name)
-
-    def get_sqs_message_count(self, name):
-        response = self.sqs_client.get_queue_attributes(
-            QueueUrl=self.get_sqs_queue_url(name),
-            AttributeNames=['ApproximateNumberOfMessages'])
-        result = int(response['Attributes']['ApproximateNumberOfMessages'])
-        print('Messages in {}: {}'.format(name, result))
-        return result
-
-    def get_message_count(self, queue):
-        queue_name = self.get_sqs_queue_name(queue)
-        message_count = self.get_sqs_message_count(queue_name)
-        self.statsd_client.incr("{}.queue-length".format(queue_name), message_count)
-        return message_count
-
-    def get_total_message_count(self, queues):
-        return sum(self.get_message_count(queue) for queue in queues)
-
-    def scale_sqs_app(self, app, paas_app):
-        print('Processing {}'.format(app.name))
-        total_message_count = self.get_total_message_count(app.queues)
-        print('Total message count: {}'.format(total_message_count))
-        desired_instance_count = int(math.ceil(total_message_count / float(app.messages_per_instance)))
-
-        self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
-
-    def get_load_balancer_request_counts(self, load_balancer_name):
-        start_time = datetime.datetime.now() - datetime.timedelta(minutes=5)
-        end_time = datetime.datetime.now()
-        result = self.cloudwatch_client.get_metric_statistics(
-            Namespace='AWS/ELB',
-            MetricName='RequestCount',
-            Dimensions=[
-                {
-                    'Name': 'LoadBalancerName',
-                    'Value': load_balancer_name
-                },
-            ],
-            StartTime=start_time,
-            EndTime=end_time,
-            Period=60,
-            Statistics=['Sum'],
-            Unit='Count'
-        )
-        datapoints = result['Datapoints']
-        datapoints = sorted(datapoints, key=lambda x: x['Timestamp'])
-        return [row['Sum'] for row in datapoints]
-
-    def scale_elb_app(self, app, paas_app):
-        print('Processing {}'.format(app.name))
-        request_counts = self.get_load_balancer_request_counts(app.load_balancer_name)
-        if len(request_counts) == 0:
-            request_counts = [0]
-        print('Request counts (5 min): {}'.format(request_counts))
-
-        # We make sure we keep the highest instance count for 5 minutes
-        highest_request_count = max(request_counts)
-        print('Highest request count (5 min): {}'.format(highest_request_count))
-
-        desired_instance_count = int(math.ceil(highest_request_count / float(app.request_per_instance)))
-        self.statsd_client.gauge("{}.request-count".format(app.name), highest_request_count)
-        self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
-
-    def get_scheduled_jobs_items_count(self):
-        interval = '1 minute'
-        db_uri = json.loads(os.environ['VCAP_SERVICES'])['postgres'][0]['credentials']['uri']
-        with psycopg2.connect(db_uri) as conn:
-            with conn.cursor() as cursor:
-                # Use coalesce to avoid null values when nothing is scheduled
-                # https://stackoverflow.com/a/6530371/1477072
-                q = ("SELECT COALESCE(SUM(notification_count), 0) "
-                     "FROM jobs "
-                     "WHERE scheduled_for - current_timestamp < interval '{}' AND "
-                     "job_status = 'scheduled';".format(interval))
-
-                cursor.execute(q)
-                items_count = cursor.fetchone()[0]
-
-                print("Items scheduled in the next {}: {}".format(
-                      interval, items_count))
-
-                return items_count
-
-    def scale_schedule_job_app(self, app, paas_app, scheduled_items):
-        # use only a third of the items because not everything gets put on the queue at once
-        scale_items = scheduled_items / 3
-        desired_instance_count = int(math.ceil(scale_items / float(app.items_per_instance)))
-        self.scale_paas_apps(app, paas_app, paas_app['instances'], desired_instance_count)
-
     def scale_paas_apps(self, app, paas_app, current_instance_count, desired_instance_count):
         scheduled_desired_instance_count = 0
         if self.should_scale_on_schedule(app.name):
-            scheduled_desired_instance_count = int(math.ceil(app.max_instance_count * self.scheduled_scale_factor))
-            print("{} to scale to {} on schedule".format(app.name, scheduled_desired_instance_count))
-
-        desired_instance_count = max(desired_instance_count, scheduled_desired_instance_count)
-
-        desired_instance_count = min(app.max_instance_count, desired_instance_count)
-        desired_instance_count = max(app.min_instance_count, desired_instance_count)
-
-        print('{}: Desired instance count: {} ({} + {})'.format(
-            app.name, desired_instance_count + app.buffer_instances, desired_instance_count, app.buffer_instances))
-
-        # buffer instances can grow above the max_instance_count
-        desired_instance_count += app.buffer_instances
-
-        if current_instance_count == desired_instance_count:
-            self.statsd_client.gauge("{}.instance-count".format(app.name), current_instance_count)
-            return
-
-        is_scale_up = True if desired_instance_count > current_instance_count else False
-        is_scale_down = not is_scale_up  # for readability
-
-        if is_scale_up:
-            self.last_scale_up[app.name] = datetime.datetime.now()
-
-        if is_scale_down:
-            if self.recent_scale(app.name, self.last_scale_up, self.cooldown_seconds_after_scale_up):
-                print("Skipping scale down due to recent scale up event")
-                return
-
-            if self.recent_scale(app.name, self.last_scale_down, self.cooldown_seconds_after_scale_down):
-                print("Skipping scale down due to a recent scale down event")
-                return
 
             # Make sure we don't remove more than 1 instance at a time, and only downscale when under 1000 messages
             if current_instance_count - desired_instance_count >= 2:

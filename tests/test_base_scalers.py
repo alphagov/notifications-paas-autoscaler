@@ -1,9 +1,10 @@
 from unittest.mock import patch
+import json
 import os
 
 import pytest
 
-from app.base_scalers import BaseScaler, AwsBaseScaler
+from app.base_scalers import BaseScaler, AwsBaseScaler, DbQueryScaler
 
 
 class TestBaseScaler:
@@ -98,3 +99,16 @@ class TestAwsBaseScaler:
         assert aws_base_scaler.aws_region == 'eu-west-1'
         assert aws_base_scaler.aws_account_id == 123456
         mock_client.assert_called_with('sts', region_name='eu-west-1')
+
+
+class TestDbQueryScaler:
+    def test_db_uri_is_loaded(self):
+        vcap_string = json.dumps({'postgres': [{'credentials': {'uri': 'test-db-uri'}}]})
+        with patch.dict(os.environ, {'VCAP_SERVICES': vcap_string}):
+            input_attrs = {
+                'min_instances': 1,
+                'max_instances': 2,
+                'threshold': 1500,
+            }
+            db_query_scaler = DbQueryScaler(**input_attrs)
+            assert db_query_scaler.db_uri == 'test-db-uri'

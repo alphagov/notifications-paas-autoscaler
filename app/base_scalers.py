@@ -52,8 +52,12 @@ class DbQueryScaler(BaseScaler):
             self.db_uri = None
 
     def run_query(self):
+        if self.query is None:
+            raise Exception("No query has been defined")
+
         if self.db_uri is None:
             raise Exception("db service not configured")
+
         with psycopg2.connect(self.db_uri) as conn:
             with conn.cursor() as cursor:
                 cursor.execute(self.query)

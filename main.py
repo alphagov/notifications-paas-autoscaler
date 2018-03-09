@@ -259,7 +259,8 @@ class AutoScaler:
     def scale_paas_apps(self, app, paas_app, current_instance_count, desired_instance_count):
         scheduled_desired_instance_count = 0
         if self.should_scale_on_schedule(app.name):
-            scheduled_desired_instance_count = int(math.ceil(app.max_instance_count * self.scheduled_scale_factor))
+            scale_factor = float(self.autoscaler_schedule[app.name].get('scale_factor', self.scheduled_scale_factor))
+            scheduled_desired_instance_count = int(math.ceil(app.max_instance_count * scale_factor))
             print("{} to scale to {} on schedule".format(app.name, scheduled_desired_instance_count))
 
         desired_instance_count = max(desired_instance_count, scheduled_desired_instance_count)

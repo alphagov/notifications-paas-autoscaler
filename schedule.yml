@@ -1,5 +1,6 @@
 ---
 notify-delivery-worker-sender:
+  scale_factor: 0.4
   workdays:
     - 08:00-19:00
   weekends:

@@ -1,4 +1,4 @@
-import datetime
+from datetime import timedelta
 import math
 
 from app.base_scalers import AwsBaseScaler
@@ -29,12 +29,8 @@ class ElbScaler(AwsBaseScaler):
         desired_instance_count = int(math.ceil(highest_request_count / float(self.threshold)))
         return self.normalize_desired_instance_count(desired_instance_count)
 
-    def _now(self):
-        # to make mocking in tests easier
-        return datetime.datetime.now()
-
     def _get_request_counts(self):
-        start_time = self._now() - datetime.timedelta(**self.request_count_time_range)
+        start_time = self._now() - timedelta(**self.request_count_time_range)
         end_time = self._now()
         result = self.cloudwatch_client.get_metric_statistics(
             Namespace='AWS/ELB',

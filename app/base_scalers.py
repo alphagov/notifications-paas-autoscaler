@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import os
 
@@ -22,6 +23,10 @@ class BaseScaler:
     def init_statsd_client(self):
         self.statsd_client = StatsdClient()
         self.statsd_client.init_app(self)
+
+    def _now(self):
+        # to make mocking in tests easier
+        return datetime.now()
 
     def estimate_instance_count(self):
         raise NotImplementedError

@@ -19,7 +19,7 @@ class ElbScaler(AwsBaseScaler):
         request_counts = self._get_request_counts()
         if len(request_counts) == 0:
             request_counts = [0]
-        print('Request counts: {}'.format(self.request_request_counts))
+        print('Request counts: {}'.format(request_counts))
 
         # Keep the highest request count over the specified time range
         highest_request_count = max(request_counts)
@@ -34,8 +34,8 @@ class ElbScaler(AwsBaseScaler):
         return datetime.datetime.now()
 
     def _get_request_counts(self):
-        start_time = datetime.datetime.now() - datetime.timedelta(**self.request_count_time_range)
-        end_time = datetime.datetime.now()
+        start_time = self._now() - datetime.timedelta(**self.request_count_time_range)
+        end_time = self._now()
         result = self.cloudwatch_client.get_metric_statistics(
             Namespace='AWS/ELB',
             MetricName='RequestCount',

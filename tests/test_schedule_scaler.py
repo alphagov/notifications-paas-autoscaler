@@ -29,32 +29,15 @@ class TestScheduleScaler:
     @pytest.mark.parametrize('now,expected', [
         (WORKDAY_1420, 3),
         (WORKDAY_1020, 1),
-        (WEEKEND_1420, 1),
-        (WEEKEND_1020, 1),
-    ])
-    def test_estimate_instance_count_workday_schedule(self, now, expected):
-        input_attrs = {
-            'min_instances': 1,
-            'max_instances': 5,
-            'threshold': 1500,
-            'schedule': {'workdays': ['13:00-15:00'], 'scale_factor': 0.6}
-        }
-        schedule_scaler = ScheduleScaler(**input_attrs)
-        schedule_scaler._now = Mock(return_value=now)
-        assert schedule_scaler.estimate_instance_count() == expected
-
-    @pytest.mark.parametrize('now,expected', [
-        (WORKDAY_1420, 1),
-        (WORKDAY_1020, 1),
         (WEEKEND_1420, 3),
         (WEEKEND_1020, 1),
     ])
-    def test_estimate_instance_count_weekend_schedule(self, now, expected):
+    def test_estimate_instance_count_schedule(self, now, expected):
         input_attrs = {
             'min_instances': 1,
             'max_instances': 5,
             'threshold': 1500,
-            'schedule': {'weekends': ['13:00-15:00'], 'scale_factor': 0.6}
+            'schedule': {'workdays': ['13:00-15:00'], 'weekends': ['13:00-15:00'], 'scale_factor': 0.6}
         }
         schedule_scaler = ScheduleScaler(**input_attrs)
         schedule_scaler._now = Mock(return_value=now)

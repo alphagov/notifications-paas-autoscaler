@@ -37,7 +37,7 @@ class AwsBaseScaler(BaseScaler):
         super().__init__(**kwargs)
 
         self.aws_region = kwargs.get('aws_region') or os.environ.get('AWS_REGION', 'eu-west-1')
-        self.aws_account_id = self._get_boto3_client('sts', region_name=self.aws_region).get_caller_identity()['Account']
+        self.aws_account_id = self._get_boto3_client('sts', region_name=self.aws_region).get_caller_identity()['Account']  # noqa
 
     def _get_boto3_client(self, client, **kwargs):
         return boto3.client(client, **kwargs)

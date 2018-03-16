@@ -66,6 +66,10 @@ cf-push:
 	cf unbind-service notify-paas-autoscaler notify-db
 	cf push -f <(make generate-manifest)
 
+.PHONY: flake8
+flake8:
+	flake8 app/ tests/ --max-line-length=120
+
 .PHONY: test
 test:
 	pytest --cov=app/ tests/

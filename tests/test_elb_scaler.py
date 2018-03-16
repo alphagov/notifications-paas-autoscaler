@@ -1,6 +1,5 @@
-from unittest.mock import patch, Mock, call
+from unittest.mock import patch, Mock
 import datetime
-import os
 
 from app.elb_scaler import ElbScaler
 

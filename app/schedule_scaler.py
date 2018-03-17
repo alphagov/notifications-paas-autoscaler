@@ -15,7 +15,7 @@ class ScheduleScaler(BaseScaler):
         if not self._should_scale_on_schedule():
             return self.min_instances
 
-        return int(math.ceil(self.max_instances * self.scale_factor))
+        return self.normalize_desired_instance_count(int(math.ceil(self.max_instances * self.scale_factor)))
 
     def _should_scale_on_schedule(self):
         now = self._now()

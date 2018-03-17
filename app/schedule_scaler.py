@@ -11,7 +11,7 @@ class ScheduleScaler(BaseScaler):
         self.schedule = kwargs['schedule']
         self.scale_factor = self.schedule.get('scale_factor') or os.environ.get('SCHEDULE_SCALE_FACTOR', 0.1)
 
-    def estimate_instance_count(self):
+    def get_desired_instance_count(self):
         if not self._should_scale_on_schedule():
             return self.min_instances
 

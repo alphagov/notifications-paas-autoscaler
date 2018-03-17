@@ -10,7 +10,7 @@ class App:
     def query_scalers(self):
         instance_counts = []
         for scaler in self.scalers:
-            instance_counts = scaler.estimate_instance_count()
+            instance_counts = scaler.get_desired_instance_count()
         return instance_counts
 
     def get_desired_instance_count(self):

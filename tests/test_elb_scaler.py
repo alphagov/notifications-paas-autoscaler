@@ -29,7 +29,7 @@ class TestElbScaler:
         assert elb_scaler.cloudwatch_client == mock_client.return_value
         mock_client.assert_called_with('cloudwatch', region_name='eu-west-1')
 
-    def test_estimate_instance_count(self, mock_boto3):
+    def test_get_desired_instance_count(self, mock_boto3):
         # set to 5 minutes, to have a smaller mocked response
         self.input_attrs['request_count_time_range'] = {'minutes': 5}
         now = datetime.datetime(2018, 3, 15, 10, 00, 0, 720029)
@@ -47,7 +47,7 @@ class TestElbScaler:
         elb_scaler.statsd_client = Mock()
         elb_scaler._now = Mock(return_value=now)
 
-        assert elb_scaler.estimate_instance_count() == 2
+        assert elb_scaler.get_desired_instance_count() == 2
         cloudwatch_client.get_metric_statistics.assert_called_once_with(
             Namespace='AWS/ELB',
             MetricName='RequestCount',

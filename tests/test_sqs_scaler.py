@@ -34,7 +34,7 @@ class TestSqsScaler:
         assert sqs_scaler.sqs_client == mock_client.return_value
         mock_client.assert_called_with('sqs', region_name='eu-west-1')
 
-    def test_estimate_instance_count(self, mock_boto3):
+    def test_get_desired_instance_count(self, mock_boto3):
         self.input_attrs['queues'] = ['queue1', 'queue2']
 
         sqs_client = mock_boto3.client.return_value
@@ -46,7 +46,7 @@ class TestSqsScaler:
         with patch.dict(os.environ, {'SQS_QUEUE_PREFIX': 'production'}):
             sqs_scaler = SqsScaler(**self.input_attrs)
             sqs_scaler.statsd_client = Mock()
-            assert sqs_scaler.estimate_instance_count() == 2
+            assert sqs_scaler.get_desired_instance_count() == 2
             calls = [
                 call("productionqueue1.queue-length", 400),
                 call("productionqueue2.queue-length", 350),

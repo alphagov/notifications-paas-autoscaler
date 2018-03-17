@@ -28,7 +28,7 @@ class BaseScaler:
         # to make mocking in tests easier
         return datetime.now()
 
-    def estimate_instance_count(self):
+    def get_desired_instance_count(self):
         raise NotImplementedError
 
 

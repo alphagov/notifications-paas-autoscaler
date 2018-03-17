@@ -32,7 +32,7 @@ class TestScheduleScaler:
         (WEEKEND_1420, 3),
         (WEEKEND_1020, 1),
     ])
-    def test_estimate_instance_count_schedule(self, now, expected):
+    def test_get_desired_instance_count_schedule(self, now, expected):
         input_attrs = {
             'min_instances': 1,
             'max_instances': 5,
@@ -41,4 +41,4 @@ class TestScheduleScaler:
         }
         schedule_scaler = ScheduleScaler(**input_attrs)
         schedule_scaler._now = Mock(return_value=now)
-        assert schedule_scaler.estimate_instance_count() == expected
+        assert schedule_scaler.get_desired_instance_count() == expected

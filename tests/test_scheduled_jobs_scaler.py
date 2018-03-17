@@ -22,7 +22,7 @@ class TestScheduledJobsScaler:
         job_status = 'scheduled';
         """
 
-    def test_estimate_instance_count(self):
+    def test_get_desired_instance_count(self):
         input_attrs = {
             'min_instances': 1,
             'max_instances': 5,
@@ -32,4 +32,4 @@ class TestScheduledJobsScaler:
         scheduled_job_scaler.run_query = Mock(return_value=10000)
 
         # 10k items * 0.3 = 3k => 2 instances
-        assert scheduled_job_scaler.estimate_instance_count() == 2
+        assert scheduled_job_scaler.get_desired_instance_count() == 2

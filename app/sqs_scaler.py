@@ -14,7 +14,7 @@ class SqsScaler(AwsBaseScaler):
     def _init_sqs_client(self):
         self.sqs_client = super()._get_boto3_client('sqs', region_name=self.aws_region)
 
-    def estimate_instance_count(self):
+    def get_desired_instance_count(self):
         print('Processing {}'.format(self.app_name))
         total_message_count = self._get_total_message_count(self.queues)
         print('Total message count: {}'.format(total_message_count))

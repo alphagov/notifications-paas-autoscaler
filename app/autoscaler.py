@@ -63,35 +63,20 @@ class Autoscaler:
         self._schedule()
 
     def scale_paas_apps(self, app_name, paas_app, current_instance_count, desired_instance_count):
-        print('{}: Desired instance count: {}'.format(app_name, desired_instance_count))
-
-        if current_instance_count == desired_instance_count:
-            self.statsd_client.gauge("{}.instance-count".format(app_name), current_instance_count)
-            return
-
         is_scale_up = True if desired_instance_count > current_instance_count else False
-        is_scale_down = not is_scale_up  # for readability
 
         if is_scale_up:
             self.last_scale_up[app_name] = self._now()
 
-        if is_scale_down:
-            if self._recent_scale(app_name, self.last_scale_up, self.cooldown_seconds_after_scale_up):
-                print("Skipping scale down due to recent scale up event")
-                self.statsd_client.gauge("{}.instance-count".format(app_name), current_instance_count)
-                return
+        if self._should_skip_scale(app_name, current_instance_count, desired_instance_count):
+            self.statsd_client.gauge("{}.instance-count".format(app_name), current_instance_count)
+            return
 
-            if self._recent_scale(app_name, self.last_scale_down, self.cooldown_seconds_after_scale_down):
-                print("Skipping scale down due to a recent scale down event")
-                self.statsd_client.gauge("{}.instance-count".format(app_name), current_instance_count)
-                return
+        # Make sure we don't remove more than 1 instance at a time
+        if current_instance_count - desired_instance_count >= 2:
+            desired_instance_count = current_instance_count - 1
+            self.last_scale_down[app_name] = self._now()
 
-            # Make sure we don't remove more than 1 instance at a time
-            if current_instance_count - desired_instance_count >= 2:
-                desired_instance_count = current_instance_count - 1
-                self.last_scale_down[app_name] = self._now()
-
-        print('Current/desired instance count: {}/{}'.format(current_instance_count, desired_instance_count))
         print('Scaling {} from {} to {}'.format(app_name, current_instance_count, desired_instance_count))
         self.statsd_client.gauge("{}.instance-count".format(app_name), desired_instance_count)
         try:
@@ -99,6 +84,23 @@ class Autoscaler:
         except BaseException as e:
             msg = 'Failed to scale {}: {}'.format(app_name, str(e))
             logging.error(msg)
+
+    def _should_skip_scale(self, app_name, current_instance_count, desired_instance_count):
+        if current_instance_count == desired_instance_count:
+            return True
+
+        # we never block scaling up
+        if desired_instance_count > current_instance_count:
+            return False
+
+        # the following are only checked before scaling down
+        if self._recent_scale(app_name, self.last_scale_up, self.cooldown_seconds_after_scale_up):
+            print("Skipping scale down due to recent scale up event")
+            return True
+
+        if self._recent_scale(app_name, self.last_scale_down, self.cooldown_seconds_after_scale_down):
+            print("Skipping scale down due to a recent scale down event")
+            return True
 
     def _recent_scale(self, app_name, last_scale, timeout):
         # if we redeployed the app and we lost the last scale time

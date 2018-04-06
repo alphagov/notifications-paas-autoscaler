@@ -13,9 +13,7 @@ class Autoscaler:
         self.last_scale_up = {}
         self.last_scale_down = {}
         self.scheduler = sched.scheduler(self._now, time.sleep)
-        self.cf_org = os.environ['CF_ORG']
-        self.cf_space = os.environ['CF_SPACE']
-        self.cf = Cf(self.cf_org, self.cf_space)
+        self.cf = Cf()
 
     def _now(self):
         return time.time()
@@ -32,10 +30,10 @@ class Autoscaler:
         self.scheduler.enterabs(run_at, 1, self.run_task)
 
     def run(self):
-        print('API endpoint:   {}'.format(self.cf_api_url))
-        print('User:           {}'.format(self.cf_username))
-        print('Org:            {}'.format(self.cf_org))
-        print('Space:          {}'.format(self.cf_space))
+        print('API endpoint:   {}'.format(self.cf.api_url))
+        print('User:           {}'.format(self.cf.username))
+        print('Org:            {}'.format(self.cf.org))
+        print('Space:          {}'.format(self.cf.space))
 
         self._schedule()
         while True:

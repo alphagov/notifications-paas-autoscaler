@@ -6,16 +6,21 @@ from cloudfoundry_client.client import CloudFoundryClient
 
 
 class Cf:
-    def __init__(self, org, space):
-        self.org = org
-        self.space = space
+    def __init__(self):
+        self.client = None
+
+        self.org = os.environ['CF_ORG']
+        self.space = os.environ['CF_SPACE']
+        self.api_url = os.environ['CF_API_URL']
+        self.username = os.environ['CF_USERNAME']
+        self.password = os.environ['CF_PASSWORD']
 
     def get_cloudfoundry_client(self):
         if self.client is None:
             proxy = dict(http=os.environ.get('HTTP_PROXY', ''), https=os.environ.get('HTTPS_PROXY', ''))
-            client = CloudFoundryClient(self.cf_api_url, proxy=proxy)
+            client = CloudFoundryClient(self.api_url, proxy=proxy)
             try:
-                client.init_with_user_credentials(self.cf_username, self.cf_password)
+                client.init_with_user_credentials(self.username, self.password)
                 self.client = client
             except BaseException as e:
                 msg = 'Failed to authenticate: {}, waiting 5 minutes and exiting'.format(str(e))

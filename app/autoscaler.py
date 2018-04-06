@@ -1,18 +1,21 @@
 import logging
+import os
 import sched
 import time
 
-# from cloudfoundry_client.client import CloudFoundryClient
+from app.cf import Cf
 
 
 class Autoscaler:
     statsd_client = None
-    cf_client = None
 
     def __init__(self):
         self.last_scale_up = {}
         self.last_scale_down = {}
         self.scheduler = sched.scheduler(self._now, time.sleep)
+        self.cf_org = os.environ['CF_ORG']
+        self.cf_space = os.environ['CF_SPACE']
+        self.cf = Cf(self.cf_org, self.cf_space)
 
     def _now(self):
         return time.time()
@@ -80,7 +83,7 @@ class Autoscaler:
         print('Scaling {} from {} to {}'.format(app_name, current_instance_count, desired_instance_count))
         self.statsd_client.gauge("{}.instance-count".format(app_name), desired_instance_count)
         try:
-            self.cf_client.apps._update(paas_app['guid'], {'instances': desired_instance_count})
+            self.cf.apps._update(paas_app['guid'], {'instances': desired_instance_count})
         except BaseException as e:
             msg = 'Failed to scale {}: {}'.format(app_name, str(e))
             logging.error(msg)

@@ -42,7 +42,7 @@ class SqsScaler(AwsBaseScaler):
     def _get_message_count(self, queue):
         queue_name = self._get_sqs_queue_name(queue)
         message_count = self._get_sqs_message_count(queue_name)
-        self.statsd_client.incr("{}.queue-length".format(queue_name), message_count)
+        self.incr("{}.queue-length".format(queue_name), message_count)
         return message_count
 
     def _get_total_message_count(self, queues):

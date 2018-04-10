@@ -31,6 +31,10 @@ class TestSqsScaler:
         self.input_attrs['queues'] = ['queue1', 'queue2']
         mock_client = mock_boto3.client
         sqs_scaler = SqsScaler(**self.input_attrs)
+        sqs_scaler.statsd_client = Mock()
+
+        assert sqs_scaler.sqs_client is None
+        sqs_scaler.get_desired_instance_count()
         assert sqs_scaler.sqs_client == mock_client.return_value
         mock_client.assert_called_with('sqs', region_name='eu-west-1')
 

@@ -26,6 +26,10 @@ class TestElbScaler:
     def test_cloudwatch_client_initialization(self, mock_boto3):
         mock_client = mock_boto3.client
         elb_scaler = ElbScaler(**self.input_attrs)
+        elb_scaler.statsd_client = Mock()
+
+        assert elb_scaler.cloudwatch_client is None
+        elb_scaler.get_desired_instance_count()
         assert elb_scaler.cloudwatch_client == mock_client.return_value
         mock_client.assert_called_with('cloudwatch', region_name='eu-west-1')
 

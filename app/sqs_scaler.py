@@ -9,10 +9,11 @@ class SqsScaler(AwsBaseScaler):
         super().__init__(**kwargs)
         self.queues = kwargs['queues'] if isinstance(kwargs['queues'], list) else [kwargs['queues']]
         self.sqs_queue_prefix = os.environ.get('SQS_QUEUE_PREFIX', '')
-        self._init_sqs_client()
+        self.sqs_client = None
 
     def _init_sqs_client(self):
-        self.sqs_client = super()._get_boto3_client('sqs', region_name=self.aws_region)
+        if self.sqs_client is None:
+            self.sqs_client = super()._get_boto3_client('sqs', region_name=self.aws_region)
 
     def get_desired_instance_count(self):
         print('Processing {}'.format(self.app_name))
@@ -30,6 +31,7 @@ class SqsScaler(AwsBaseScaler):
             self.aws_region, self.aws_account_id, name)
 
     def _get_sqs_message_count(self, name):
+        self._init_sqs_client()
         response = self.sqs_client.get_queue_attributes(
             QueueUrl=self._get_sqs_queue_url(name),
             AttributeNames=['ApproximateNumberOfMessages'])

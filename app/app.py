@@ -15,3 +15,6 @@ class App:
 
     def get_desired_instance_count(self):
         return max(self.query_scalers())
+
+    def refresh_cf_info(self, cf_attributes):
+        self.cf_attributes = cf_attributes

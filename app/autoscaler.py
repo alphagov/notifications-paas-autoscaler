@@ -46,11 +46,16 @@ class Autoscaler:
             if app.name not in paas_apps:
                 print("Application {} does not exist".format(app.name))
                 continue
-            self.scale_paas_apps(app.name, paas_apps[app.name], paas_apps[app.name]['instances'], app.get_desired_instance_count())
+            app.refresh_cf_info(paas_apps[app.name])
+            self.scale(app)
 
         self._schedule()
 
-    def scale_paas_apps(self, app_name, paas_app, current_instance_count, desired_instance_count):
+    def scale(self, app):
+        app_name = app.name
+        desired_instance_count = app.get_desired_instance_count()
+        current_instance_count = app.cf_attributes['instances']
+
         is_scale_up = True if desired_instance_count > current_instance_count else False
 
         if is_scale_up:
@@ -68,7 +73,7 @@ class Autoscaler:
         print('Scaling {} from {} to {}'.format(app_name, current_instance_count, desired_instance_count))
         self.statsd_client.gauge("{}.instance-count".format(app_name), desired_instance_count)
         try:
-            self.cf.apps._update(paas_app['guid'], {'instances': desired_instance_count})
+            self.cf.apps._update(app.cf_attributes['guid'], {'instances': desired_instance_count})
         except BaseException as e:
             msg = 'Failed to scale {}: {}'.format(app_name, str(e))
             logging.error(msg)

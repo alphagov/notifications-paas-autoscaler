@@ -71,5 +71,5 @@ flake8:
 	flake8 app/ tests/ --max-line-length=120
 
 .PHONY: test
-test:
+test: flake8
 	pytest --cov=app/ tests/

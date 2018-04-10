@@ -40,26 +40,13 @@ class Autoscaler:
             self.scheduler.run()
 
     def run_task(self):
-        paas_apps = self.get_paas_apps()
+        paas_apps = self.cf.get_paas_apps()
 
-        for app in self.elb_apps:
+        for app in self.autoscaler_apps:
             if app.name not in paas_apps:
                 print("Application {} does not exist".format(app.name))
                 continue
-            self.scale_elb_app(app, paas_apps[app.name])
-
-        scheduled_items = self.get_scheduled_jobs_items_count()
-        for app in self.scheduled_job_apps:
-            if app.name not in paas_apps:
-                print("Application {} does not exist".format(app.name))
-                continue
-            self.scale_schedule_job_app(app, paas_apps[app.name], scheduled_items)
-
-        for app in self.sqs_apps:
-            if app.name not in paas_apps:
-                print("Application {} does not exist".format(app.name))
-                continue
-            self.scale_sqs_app(app, paas_apps[app.name])
+            self.scale_paas_apps(app.name, paas_apps[app.name], paas_apps[app.name]['instances'], app.get_desired_instance_count())
 
         self._schedule()
 

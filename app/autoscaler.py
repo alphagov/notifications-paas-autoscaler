@@ -3,15 +3,15 @@ import sched
 import time
 
 from app.cf import Cf
+from app.config import config
 
 
 class Autoscaler:
-    statsd_client = None
-
     def __init__(self):
         self.last_scale_up = {}
         self.last_scale_down = {}
         self.scheduler = sched.scheduler(self._now, time.sleep)
+        self.schedule_interval = config['GENERAL']['SCHEDULE_INTERVAL']
         self.cf = Cf()
 
     def _now(self):
@@ -19,7 +19,7 @@ class Autoscaler:
 
     def _schedule(self):
         current_time = time.time()
-        run_at = current_time + self.schedule_interval - ((current_time - self.schedule_delay) % self.schedule_interval)
+        run_at = current_time + self.schedule_interval
         print('Next run time {}'.format(str(run_at)))
 
         # Copying from docs: https://docs.python.org/3/library/sched.html#sched.scheduler.run

@@ -10,6 +10,7 @@ applications:
     memory: 128M
     env:
       PYTHONUNBUFFERED: 1
+      CONFIG_PATH: /home/vcap/app/config.yml
     services:
       - notify-paas-autoscaler
       - notify-db

@@ -1,11 +1,15 @@
+import app
+
+
 class App:
-    def __init__(self, name, scaler_classes, **scaler_details):
+    def __init__(self, name, scalers, **scaler_details):
         self.name = name
         self.scaler_details = scaler_details
         self.scaler_details['app_name'] = name
         self.scalers = []
-        for scaler in scaler_classes:
-            self.scalers.append(scaler(**self.scaler_details))
+        for scaler in scalers:
+            scaler_cls = getattr(app, scaler)
+            self.scalers.append(scaler_cls(**self.scaler_details))
 
     def query_scalers(self):
         desired_instance_counts = []

@@ -2,6 +2,7 @@ import logging
 import sched
 import time
 
+from app.app import App
 from app.cf import Cf
 from app.config import config
 from app.utils import get_statsd_client
@@ -15,6 +16,17 @@ class Autoscaler:
         self.schedule_interval = config['GENERAL']['SCHEDULE_INTERVAL']
         self.statsd_client = get_statsd_client()
         self.cf = Cf()
+        self._load_autoscaler_apps()
+
+    def _load_autoscaler_apps(self):
+        apps = []
+        for app in config['APPS']:
+            try:
+                apps.append(App(**app))
+            except Exception as e:
+                msg = "Could not load {}: The error was: {}".format(app, e)
+                print(msg)
+                raise Exception(msg)
 
     def _now(self):
         return time.time()

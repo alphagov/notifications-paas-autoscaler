@@ -4,7 +4,7 @@ import os
 
 import psycopg2
 import boto3
-from notifications_utils.clients.statsd.statsd_client import StatsdClient
+from app.utils import get_statsd_client
 
 
 class BaseScaler:
@@ -13,7 +13,7 @@ class BaseScaler:
         self.max_instances = max_instances
         self.threshold = threshold
         self.app_name = kwargs.get('app_name', 'missing_name')
-        self.statsd_client = None
+        self.statsd_client = get_statsd_client()
 
     def normalize_desired_instance_count(self, desired_instances):
         desired_instances = max(desired_instances, self.min_instances)
@@ -21,21 +21,10 @@ class BaseScaler:
 
         return desired_instances
 
-    def init_statsd_client(self):
-        self.statsd_client = StatsdClient()
-        self.statsd_client.init_app(self)
-
-    def get_statsd_client(self):
-        if self.statsd_client is None:
-            self.init_statsd_client()
-        return self.statsd_client
-
     def gauge(self, metric_name, metric_value):
-        self.get_statsd_client()
         self.statsd_client.gauge(metric_name, metric_value)
 
     def incr(self, metric_name, metric_value):
-        self.get_statsd_client()
         self.statsd_client.incr(metric_name, metric_value)
 
     def _now(self):

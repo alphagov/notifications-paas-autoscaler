@@ -4,6 +4,7 @@ import time
 
 from app.cf import Cf
 from app.config import config
+from app.utils import get_statsd_client
 
 
 class Autoscaler:
@@ -12,6 +13,7 @@ class Autoscaler:
         self.last_scale_down = {}
         self.scheduler = sched.scheduler(self._now, time.sleep)
         self.schedule_interval = config['GENERAL']['SCHEDULE_INTERVAL']
+        self.statsd_client = get_statsd_client()
         self.cf = Cf()
 
     def _now(self):

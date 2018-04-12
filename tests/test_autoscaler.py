@@ -10,9 +10,9 @@ from app.app import App
 
 
 @patch('app.autoscaler.Cf')
-@patch.object(Autoscaler, 'statsd_client')
+@patch('app.autoscaler.get_statsd_client')
 class TestAutoscaler:
-    def test_scale_paas_app_same_instance_count(self, mock_statsd_client, mock_cf):
+    def test_scale_paas_app_same_instance_count(self, mock_get_statsd_client, mock_cf):
         app_name = 'app-name-1'
         app_guid = '11111-11111-11111111-1111'
         app = App(app_name, [Mock])
@@ -22,10 +22,10 @@ class TestAutoscaler:
 
         autoscaler = Autoscaler()
         autoscaler.scale(app)
-        mock_statsd_client.gauge.assert_called_once_with("{}.instance-count".format(app_name), 4)
+        mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 4)
         mock_cf.return_value.assert_not_called()
 
-    def test_scale_paas_app_more_instances(self, mock_statsd_client, mock_cf):
+    def test_scale_paas_app_more_instances(self, mock_get_statsd_client, mock_cf):
         app_guid = '11111-11111-11111111-1111'
         app_name = 'app-name-1'
         app = App(app_name, [Mock])
@@ -35,10 +35,10 @@ class TestAutoscaler:
 
         autoscaler = Autoscaler()
         autoscaler.scale(app)
-        mock_statsd_client.gauge.assert_called_once_with("{}.instance-count".format(app_name), 6)
+        mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 6)
         mock_cf.return_value.apps._update.assert_called_once_with(app_guid, {'instances': 6})
 
-    def test_scale_paas_app_much_fewer_instances(self, mock_statsd_client, mock_cf):
+    def test_scale_paas_app_much_fewer_instances(self, mock_get_statsd_client, mock_cf):
         app_guid = '11111-11111-11111111-1111'
         app_name = 'app-name-1'
         app = App(app_name, [Mock])
@@ -53,10 +53,10 @@ class TestAutoscaler:
         autoscaler.last_scale_down[app_name] = 800
         autoscaler._now = Mock(return_value=1500)
         autoscaler.scale(app)
-        mock_statsd_client.gauge.assert_called_once_with("{}.instance-count".format(app_name), 3)
+        mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 3)
         mock_cf.return_value.apps._update.assert_called_once_with(app_guid, {'instances': 3})
 
-    def test_scale_paas_app_fewer_instances_recent_scale_up(self, mock_statsd_client, mock_cf):
+    def test_scale_paas_app_fewer_instances_recent_scale_up(self, mock_get_statsd_client, mock_cf):
         app_guid = '11111-11111-11111111-1111'
         app_name = 'app-name-1'
         app = App(app_name, [Mock])
@@ -71,10 +71,10 @@ class TestAutoscaler:
         autoscaler.last_scale_down[app_name] = 800
         autoscaler._now = Mock(return_value=1200)
         autoscaler.scale(app)
-        mock_statsd_client.gauge.assert_called_once_with("{}.instance-count".format(app_name), 4)
+        mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 4)
         mock_cf.return_value.assert_not_called()
 
-    def test_scale_paas_app_fewer_instances_recent_scale_down(self, mock_statsd_client, mock_cf):
+    def test_scale_paas_app_fewer_instances_recent_scale_down(self, mock_get_statsd_client, mock_cf):
         app_guid = '11111-11111-11111111-1111'
         app_name = 'app-name-1'
         app = App(app_name, [Mock])
@@ -89,10 +89,10 @@ class TestAutoscaler:
         autoscaler.last_scale_down[app_name] = 1400
         autoscaler._now = Mock(return_value=1430)
         autoscaler.scale(app)
-        mock_statsd_client.gauge.assert_called_once_with("{}.instance-count".format(app_name), 4)
+        mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 4)
         mock_cf.return_value.assert_not_called()
 
-    def test_scale_paas_app_fewer_instances_missing_recent_scale_information(self, mock_statsd_client, mock_cf):
+    def test_scale_paas_app_fewer_instances_missing_recent_scale_information(self, mock_get_statsd_client, mock_cf):
         app_guid = '11111-11111-11111111-1111'
         app_name = 'app-name-1'
         app = App(app_name, [Mock])
@@ -105,10 +105,10 @@ class TestAutoscaler:
         autoscaler.cooldown_seconds_after_scale_down = 60
         autoscaler._now = Mock(return_value=1000)
         autoscaler.scale(app)
-        mock_statsd_client.gauge.assert_called_once_with("{}.instance-count".format(app_name), 4)
+        mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 4)
         mock_cf.return_value.assert_not_called()
 
-    def test_run_task(self, mock_statsd_client, mock_cf):
+    def test_run_task(self, mock_get_statsd_client, mock_cf):
         app_guid = '11111-11111-11111111-1111'
         app_name = 'app-name-1'
         app = App(app_name, [Mock])
@@ -123,12 +123,12 @@ class TestAutoscaler:
         autoscaler.autoscaler_apps = [app]
 
         autoscaler.run_task()
-        mock_statsd_client.gauge.assert_called_once_with("{}.instance-count".format(app_name), 5)
+        mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 5)
         mock_cf.return_value.apps._update.assert_called_once_with(app_guid, {'instances': 5})
 
 
 @patch('app.autoscaler.Cf')
-@patch.object(Autoscaler, 'statsd_client')
+@patch('app.autoscaler.get_statsd_client')
 @patch.object(ScheduleScaler, '_now', return_value=datetime.datetime(2018, 3, 15, 4, 20, 00))
 @patch.object(ElbScaler, 'gauge')
 @patch.object(ElbScaler, '_get_boto3_client')
@@ -139,7 +139,7 @@ class TestAutoscalerAlmostEndToEnd:
                       mock_get_boto3_client,
                       mock_gauge,
                       mock_schedule_scaler_now,
-                      mock_autoscaler_statsd_client,
+                      mock_get_statsd_client,
                       mock_cf):
         app_name = 'test-api-app'
         app_config = {
@@ -177,15 +177,15 @@ scale_factor: 0.8
         autoscaler.autoscaler_apps = [app]
         autoscaler.run_task()
 
-        mock_autoscaler_statsd_client.gauge.assert_called_once_with("{}.instance-count".format(app_name), 6)
+        mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 6)
         mock_cf.return_value.apps._update.assert_called_once_with(app_name + '-guid', {'instances': 6})
 
         # emulate that we are running in schedule now, which means max_instances * scale_factor
         mock_schedule_scaler_now.return_value = datetime.datetime(2018, 3, 15, 14, 20, 00)
-        mock_autoscaler_statsd_client.reset_mock()
+        mock_get_statsd_client.return_value.reset_mock()
         mock_cf.return_value.apps._update.reset_mock()
 
         autoscaler.run_task()
 
-        mock_autoscaler_statsd_client.gauge.assert_called_once_with("{}.instance-count".format(app_name), 8)
+        mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 8)
         mock_cf.return_value.apps._update.assert_called_once_with(app_name + '-guid', {'instances': 8})

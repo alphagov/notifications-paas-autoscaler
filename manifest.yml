@@ -1,0 +1,15 @@
+---
+
+applications:
+  - name: notify-paas-autoscaler
+    buildpack: python_buildpack
+    command: ./run.sh python main.py
+    health-check-type: none
+    no-route: true
+    instances: 1
+    memory: 128M
+    env:
+      PYTHONUNBUFFERED: 1
+    services:
+      - notify-paas-autoscaler
+      - notify-db

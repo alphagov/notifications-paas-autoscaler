@@ -1,7 +1,8 @@
-.pytest_cache
-.coverage
-__pycache__
 *.pyc
-manifest.yml
-venv
+.coverage
 .envrc
+.pytest_cache
+__pycache__
+config.yml
+data.yml
+venv

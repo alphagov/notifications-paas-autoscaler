@@ -81,4 +81,21 @@ flake8:
 
 .PHONY: test
 test: flake8
+	@$(eval export CONFIG_PATH=$(shell pwd)/config.yml)
+	@$(eval export STATSD_PREFIX=test)
+	@$(eval export CF_SPACE=test)
+	@if [ -f data.yml ]; then rm data.yml; fi
+	@echo "---" >> data.yml
+	@echo "CF_SPACE: test" >> data.yml
+	@echo "DEFAULT_SCHEDULE_SCALE_FACTOR: 0.6" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_HIGH: 20" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_LOW: 5" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_MEDIUM: 10" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_V_HIGH: 30" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_HIGH: 4" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_LOW: 2" >> data.yml
+	@echo "SCHEDULED_SCALE_FACTOR: 0" >> data.yml
+	@echo "SQS_QUEUE_PREFIX: test" >> data.yml
+	@echo "STATSD_ENABLED: False" >> data.yml
+	@make generate-config
 	pytest --cov=app/ tests/

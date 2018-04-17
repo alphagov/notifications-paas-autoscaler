@@ -4,6 +4,7 @@ from unittest.mock import patch, Mock
 import yaml
 
 from app.autoscaler import Autoscaler
+from app.base_scalers import AwsBaseScaler
 from app.elb_scaler import ElbScaler
 from app.schedule_scaler import ScheduleScaler
 from app.app import App
@@ -112,6 +113,7 @@ class TestScale:
         mock_cf.return_value.assert_not_called()
 
 
+@patch.object(AwsBaseScaler, '_get_boto3_client')
 @patch('app.autoscaler.Cf')
 @patch('app.autoscaler.get_statsd_client')
 @patch.object(ScheduleScaler, '_now', return_value=datetime.datetime(2018, 3, 15, 4, 20, 00))
@@ -125,7 +127,8 @@ class TestAutoscalerAlmostEndToEnd:
                       mock_gauge,
                       mock_schedule_scaler_now,
                       mock_get_statsd_client,
-                      mock_cf):
+                      mock_cf,
+                      *args):
         app_name = 'test-api-app'
         app_config = {
             'name': app_name,

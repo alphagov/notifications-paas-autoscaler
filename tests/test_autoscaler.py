@@ -9,42 +9,47 @@ from app.schedule_scaler import ScheduleScaler
 from app.app import App
 
 
+@patch.object(Autoscaler, '_load_autoscaler_apps')
 @patch('app.autoscaler.Cf')
 @patch('app.autoscaler.get_statsd_client')
-class TestAutoscaler:
-    def test_scale_paas_app_same_instance_count(self, mock_get_statsd_client, mock_cf):
+class TestScale:
+    def _get_mock_app(self, name, cf_attributes):
+        app = Mock()
+        app.name = name
+        app.cf_attributes = cf_attributes
+
+        return app
+
+    def test_scale_paas_app_same_instance_count(self, mock_get_statsd_client, mock_cf, *args):
         app_name = 'app-name-1'
         app_guid = '11111-11111-11111111-1111'
-        app = App(app_name, ['ElbScaler'])
-        app.get_desired_instance_count = Mock(return_value=4)
         cf_info = {'name': app_name, 'instances': 4, 'guid': app_guid}
-        app.refresh_cf_info(cf_info)
+        app = self._get_mock_app(app_name, cf_info)
+        app.get_desired_instance_count = Mock(return_value=4)
 
         autoscaler = Autoscaler()
         autoscaler.scale(app)
         mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 4)
         mock_cf.return_value.assert_not_called()
 
-    def test_scale_paas_app_more_instances(self, mock_get_statsd_client, mock_cf):
+    def test_scale_paas_app_more_instances(self, mock_get_statsd_client, mock_cf, *args):
         app_guid = '11111-11111-11111111-1111'
         app_name = 'app-name-1'
-        app = App(app_name, ['ElbScaler'])
-        app.get_desired_instance_count = Mock(return_value=6)
         cf_info = {'name': app_name, 'instances': 4, 'guid': app_guid}
-        app.refresh_cf_info(cf_info)
+        app = self._get_mock_app(app_name, cf_info)
+        app.get_desired_instance_count = Mock(return_value=6)
 
         autoscaler = Autoscaler()
         autoscaler.scale(app)
         mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 6)
         mock_cf.return_value.apps._update.assert_called_once_with(app_guid, {'instances': 6})
 
-    def test_scale_paas_app_much_fewer_instances(self, mock_get_statsd_client, mock_cf):
+    def test_scale_paas_app_much_fewer_instances(self, mock_get_statsd_client, mock_cf, *args):
         app_guid = '11111-11111-11111111-1111'
         app_name = 'app-name-1'
-        app = App(app_name, ['ElbScaler'])
-        app.get_desired_instance_count = Mock(return_value=1)
         cf_info = {'name': app_name, 'instances': 4, 'guid': app_guid}
-        app.refresh_cf_info(cf_info)
+        app = self._get_mock_app(app_name, cf_info)
+        app.get_desired_instance_count = Mock(return_value=1)
 
         autoscaler = Autoscaler()
         autoscaler.cooldown_seconds_after_scale_up = 300
@@ -56,13 +61,12 @@ class TestAutoscaler:
         mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 3)
         mock_cf.return_value.apps._update.assert_called_once_with(app_guid, {'instances': 3})
 
-    def test_scale_paas_app_fewer_instances_recent_scale_up(self, mock_get_statsd_client, mock_cf):
+    def test_scale_paas_app_fewer_instances_recent_scale_up(self, mock_get_statsd_client, mock_cf, *args):
         app_guid = '11111-11111-11111111-1111'
         app_name = 'app-name-1'
-        app = App(app_name, ['ElbScaler'])
-        app.get_desired_instance_count = Mock(return_value=3)
         cf_info = {'name': app_name, 'instances': 4, 'guid': app_guid}
-        app.refresh_cf_info(cf_info)
+        app = self._get_mock_app(app_name, cf_info)
+        app.get_desired_instance_count = Mock(return_value=3)
 
         autoscaler = Autoscaler()
         autoscaler.cooldown_seconds_after_scale_up = 300
@@ -74,13 +78,12 @@ class TestAutoscaler:
         mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 4)
         mock_cf.return_value.assert_not_called()
 
-    def test_scale_paas_app_fewer_instances_recent_scale_down(self, mock_get_statsd_client, mock_cf):
+    def test_scale_paas_app_fewer_instances_recent_scale_down(self, mock_get_statsd_client, mock_cf, *args):
         app_guid = '11111-11111-11111111-1111'
         app_name = 'app-name-1'
-        app = App(app_name, ['ElbScaler'])
-        app.get_desired_instance_count = Mock(return_value=3)
         cf_info = {'name': app_name, 'instances': 4, 'guid': app_guid}
-        app.refresh_cf_info(cf_info)
+        app = self._get_mock_app(app_name, cf_info)
+        app.get_desired_instance_count = Mock(return_value=3)
 
         autoscaler = Autoscaler()
         autoscaler.cooldown_seconds_after_scale_up = 300
@@ -92,13 +95,13 @@ class TestAutoscaler:
         mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 4)
         mock_cf.return_value.assert_not_called()
 
-    def test_scale_paas_app_fewer_instances_missing_recent_scale_information(self, mock_get_statsd_client, mock_cf):
+    def test_scale_paas_app_fewer_instances_missing_recent_scale_information(self, mock_get_statsd_client, mock_cf,
+                                                                             *args):
         app_guid = '11111-11111-11111111-1111'
         app_name = 'app-name-1'
-        app = App(app_name, ['ElbScaler'])
-        app.get_desired_instance_count = Mock(return_value=3)
         cf_info = {'name': app_name, 'instances': 4, 'guid': app_guid}
-        app.refresh_cf_info(cf_info)
+        app = self._get_mock_app(app_name, cf_info)
+        app.get_desired_instance_count = Mock(return_value=3)
 
         autoscaler = Autoscaler()
         autoscaler.cooldown_seconds_after_scale_up = 300
@@ -107,24 +110,6 @@ class TestAutoscaler:
         autoscaler.scale(app)
         mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 4)
         mock_cf.return_value.assert_not_called()
-
-    def test_run_task(self, mock_get_statsd_client, mock_cf):
-        app_guid = '11111-11111-11111111-1111'
-        app_name = 'app-name-1'
-        app = App(app_name, ['ElbScaler'])
-        app.get_desired_instance_count = Mock(return_value=5)
-
-        mock_cf.return_value.get_paas_apps.return_value = {
-            app_name: {'name': app_name, 'instances': 4, 'guid': app_guid},
-        }
-
-        autoscaler = Autoscaler()
-        autoscaler._schedule = Mock()
-        autoscaler.autoscaler_apps = [app]
-
-        autoscaler.run_task()
-        mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 5)
-        mock_cf.return_value.apps._update.assert_called_once_with(app_guid, {'instances': 5})
 
 
 @patch('app.autoscaler.Cf')

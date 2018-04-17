@@ -2,7 +2,6 @@ import logging
 import sys
 
 from app.autoscaler import Autoscaler
-from app.config import config
 
 
 logging.basicConfig(

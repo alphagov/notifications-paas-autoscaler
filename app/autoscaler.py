@@ -27,6 +27,7 @@ class Autoscaler:
                 msg = "Could not load {}: The error was: {}".format(app, e)
                 print(msg)
                 raise Exception(msg)
+        self.autoscaler_apps = apps
 
     def _now(self):
         return time.time()

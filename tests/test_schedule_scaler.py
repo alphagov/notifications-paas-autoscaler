@@ -1,8 +1,9 @@
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 import datetime
 
 import pytest
 
+import app
 from app.schedule_scaler import ScheduleScaler
 
 WORKDAY_1420 = datetime.datetime(2018, 3, 15, 14, 20, 00)
@@ -42,3 +43,19 @@ class TestScheduleScaler:
         schedule_scaler = ScheduleScaler(**input_attrs)
         schedule_scaler._now = Mock(return_value=now)
         assert schedule_scaler.get_desired_instance_count() == expected
+
+    @pytest.mark.parametrize('enabled,expected', [
+        (True, 3),
+        (False, 1),
+    ])
+    def test_disabled_schedule(self, enabled, expected):
+        input_attrs = {
+            'min_instances': 1,
+            'max_instances': 5,
+            'threshold': 1500,
+            'schedule': {'workdays': ['00:00-23:59'], 'weekends': ['00:00-23:59'], 'scale_factor': 0.6}
+        }
+
+        schedule_scaler = ScheduleScaler(**input_attrs)
+        with patch.dict(app.config.config, {'SCALERS': {'SCHEDULE_SCALER_ENABLED': enabled}}):
+            assert schedule_scaler.get_desired_instance_count() == expected

@@ -3,6 +3,7 @@ import math
 import os
 
 from app.base_scalers import BaseScaler
+from app.config import config
 
 
 class ScheduleScaler(BaseScaler):
@@ -18,6 +19,9 @@ class ScheduleScaler(BaseScaler):
         return self.normalize_desired_instance_count(int(math.ceil(self.max_instances * self.scale_factor)))
 
     def _should_scale_on_schedule(self):
+        if not config['SCALERS']['SCHEDULE_SCALER_ENABLED']:
+            return False
+
         now = self._now()
         week_part = "workdays" if now.weekday() in range(5) else "weekends"  # Monday = 0, sunday = 6
 

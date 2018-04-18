@@ -35,7 +35,7 @@ preview:
 	@echo "MIN_INSTANCE_COUNT_LOW: 1" >> data.yml
 	@echo "SCHEDULED_SCALE_FACTOR: 0" >> data.yml
 	@echo "SQS_QUEUE_PREFIX: preview" >> data.yml
-	@echo "STATSD_ENABLED: False" >> data.yml
+	@echo "STATSD_ENABLED: True" >> data.yml
 	@$(eval export CF_SPACE=preview)
 
 staging:

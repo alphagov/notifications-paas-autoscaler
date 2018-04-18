@@ -3,7 +3,6 @@ import sys
 
 from app.autoscaler import Autoscaler
 
-
 logging.basicConfig(
     level=logging.WARNING,
     handlers=[

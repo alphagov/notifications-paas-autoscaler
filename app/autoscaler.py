@@ -13,7 +13,7 @@ class Autoscaler:
         self.last_scale_up = {}
         self.last_scale_down = {}
         self.scheduler = sched.scheduler(self._now, time.sleep)
-        self.schedule_interval = config['GENERAL']['SCHEDULE_INTERVAL']
+        self.schedule_interval_seconds = config['GENERAL']['SCHEDULE_INTERVAL_SECONDS']
         self.statsd_client = get_statsd_client()
         self.paas_client = PaasClient()
         self._load_autoscaler_apps()
@@ -34,7 +34,7 @@ class Autoscaler:
 
     def _schedule(self):
         current_time = time.time()
-        run_at = current_time + self.schedule_interval
+        run_at = current_time + self.schedule_interval_seconds
         print('Next run time {}'.format(str(run_at)))
 
         # Copying from docs: https://docs.python.org/3/library/sched.html#sched.scheduler.run

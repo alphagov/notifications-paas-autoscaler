@@ -2,7 +2,7 @@
 
 Autoscaling agent for the Notify PaaS applications.
 
-Runs every `SCHEDULE_INTERVAL` (currently 5 seconds) interval, checks some metrics and sets the desired instance count accordingly.
+Runs every `SCHEDULE_INTERVAL_SECONDS` (currently 5 seconds) interval, checks some metrics and sets the desired instance count accordingly.
 
 ## Installation
 

@@ -373,6 +373,7 @@ sqs_apps.append(SQSApp('notify-delivery-worker-periodic', ['periodic-tasks', 'st
 sqs_apps.append(SQSApp('notify-delivery-worker-receipts', ['ses-callbacks'], 250, min_instance_count_low, max_instance_count_v_high))
 sqs_apps.append(SQSApp('notify-template-preview', ['create-letters-pdf-tasks'], 10, min_instance_count_low, max_instance_count_medium))
 sqs_apps.append(SQSApp('notify-delivery-worker-service-callbacks', ['service-callbacks'], 500, min_instance_count_low, max_instance_count_low))
+sqs_apps.append(SQSApp('notify-antivirus', ['antivirus-tasks'], 50, min_instance_count_low, max_instance_count_low))
 
 elb_apps = []
 elb_apps.append(ELBApp('notify-api', 'notify-paas-proxy', 2000, min_instance_count_high, max_instance_count_high, buffer_instances))

@@ -58,7 +58,7 @@ class Autoscaler:
 
         for app in self.autoscaler_apps:
             if app.name not in paas_apps:
-                print("Application {} does not exist".format(app.name))
+                print("Application {} does not exist, check the config and ensure it is deployed".format(app.name))
                 continue
             app.refresh_cf_info(paas_apps[app.name])
             self.scale(app)

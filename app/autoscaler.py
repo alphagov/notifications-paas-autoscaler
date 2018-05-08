@@ -3,7 +3,7 @@ import sched
 import time
 
 from app.app import App
-from app.cf import Cf
+from app.paas_client import PaasClient
 from app.config import config
 from app.utils import get_statsd_client
 
@@ -15,7 +15,7 @@ class Autoscaler:
         self.scheduler = sched.scheduler(self._now, time.sleep)
         self.schedule_interval = config['GENERAL']['SCHEDULE_INTERVAL']
         self.statsd_client = get_statsd_client()
-        self.cf = Cf()
+        self.paas_client = PaasClient()
         self._load_autoscaler_apps()
 
     def _load_autoscaler_apps(self):
@@ -44,17 +44,17 @@ class Autoscaler:
         self.scheduler.enterabs(run_at, 1, self.run_task)
 
     def run(self):
-        print('API endpoint:   {}'.format(self.cf.api_url))
-        print('User:           {}'.format(self.cf.username))
-        print('Org:            {}'.format(self.cf.org))
-        print('Space:          {}'.format(self.cf.space))
+        print('API endpoint:   {}'.format(self.paas_client.api_url))
+        print('User:           {}'.format(self.paas_client.username))
+        print('Org:            {}'.format(self.paas_client.org))
+        print('Space:          {}'.format(self.paas_client.space))
 
         self._schedule()
         while True:
             self.scheduler.run()
 
     def run_task(self):
-        paas_apps = self.cf.get_paas_apps()
+        paas_apps = self.paas_client.get_paas_apps()
 
         for app in self.autoscaler_apps:
             if app.name not in paas_apps:
@@ -69,7 +69,7 @@ class Autoscaler:
         print('Scaling {} from {} to {}'.format(app.name, current_instance_count, desired_instance_count))
         self.statsd_client.gauge("{}.instance-count".format(app.name), desired_instance_count)
         try:
-            self.cf.apps._update(app.cf_attributes['guid'], {'instances': desired_instance_count})
+            self.paas_client.apps._update(app.cf_attributes['guid'], {'instances': desired_instance_count})
         except BaseException as e:
             msg = 'Failed to scale {}: {}'.format(app.name, str(e))
             logging.error(msg)

@@ -2,7 +2,7 @@
 
 from unittest.mock import patch
 
-from app.cf import Cf
+from app.paas_client import PaasClient
 
 env = {
     'CF_ORG': 'notify',
@@ -69,21 +69,21 @@ MockOrgs = [
 
 
 @patch.dict('os.environ', env)
-@patch('app.cf.CloudFoundryClient')
-class TestCf:
-    def test_cf_login_fails_waits_5_minutes(self, mock_cf_client, *args):
-        mock_cf_client.return_value.init_with_user_credentials.side_effect = Exception("Login failed")
-        with patch('app.cf.time') as mock_time:
-            cf = Cf()
-            cf.get_cloudfoundry_client()
+@patch('app.paas_client.CloudFoundryClient')
+class TestPaasClient:
+    def test_paas_client_login_fails_waits_5_minutes(self, mock_paas_client_client, *args):
+        mock_paas_client_client.return_value.init_with_user_credentials.side_effect = Exception("Login failed")
+        with patch('app.paas_client.time') as mock_time:
+            paas_client = PaasClient()
+            paas_client.get_cloudfoundry_client()
             mock_time.sleep.assert_called_once_with(5 * 60)
 
-    def test_get_paas_apps(self, mock_cf_client, *args):
-        logged_in_mock_client = mock_cf_client.return_value
+    def test_get_paas_apps(self, mock_paas_client_client, *args):
+        logged_in_mock_client = mock_paas_client_client.return_value
         logged_in_mock_client.organizations = MockOrgs
-        cf = Cf()
+        paas_client = PaasClient()
 
-        instances = cf.get_paas_apps()
+        instances = paas_client.get_paas_apps()
         assert instances == {
             'app7': {'name': 'app7', 'instances': 3, 'guid': 'notify-test-app7'},
             'app8': {'name': 'app8', 'instances': 4, 'guid': 'notify-test-app8'},

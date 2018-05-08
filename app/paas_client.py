@@ -5,7 +5,7 @@ import logging
 from cloudfoundry_client.client import CloudFoundryClient
 
 
-class Cf:
+class PaasClient:
     def __init__(self):
         self.client = None
 

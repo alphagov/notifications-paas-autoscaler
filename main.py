@@ -371,7 +371,8 @@ sqs_apps.append(SQSApp('notify-delivery-worker-research', ['research-mode-tasks'
 sqs_apps.append(SQSApp('notify-delivery-worker-priority', ['priority-tasks'], 250, min_instance_count_low, max_instance_count_low))
 sqs_apps.append(SQSApp('notify-delivery-worker-periodic', ['periodic-tasks', 'statistics-tasks'], 250, min_instance_count_low, max_instance_count_low))
 sqs_apps.append(SQSApp('notify-delivery-worker-receipts', ['ses-callbacks'], 250, min_instance_count_low, max_instance_count_v_high))
-sqs_apps.append(SQSApp('notify-template-preview', ['create-letters-pdf-tasks'], 10, min_instance_count_low, max_instance_count_medium))
+sqs_apps.append(SQSApp('notify-template-preview', ['create-letters-pdf-tasks'], 8, min_instance_count_low,
+                       max_instance_count_v_high))
 sqs_apps.append(SQSApp('notify-delivery-worker-service-callbacks', ['service-callbacks'], 500, min_instance_count_low, max_instance_count_low))
 sqs_apps.append(SQSApp('notify-antivirus', ['antivirus-tasks'], 50, min_instance_count_low, max_instance_count_low))
 

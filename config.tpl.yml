@@ -94,8 +94,8 @@ APPS:
 
   - name: notify-template-preview
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
-    max_instances: {{ MAX_INSTANCE_COUNT_MEDIUM }}
-    threshold: 10
+    max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
+    threshold: 8
     scalers: [SqsScaler, ScheduledJobsScaler]
     queues:  [create-letters-pdf-tasks]
 
@@ -105,3 +105,10 @@ APPS:
     threshold: 500
     scalers: [SqsScaler, ScheduledJobsScaler]
     queues:  [service-callbacks]
+
+  - name: notify-antivirus
+    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
+    max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
+    threshold: 50
+    scalers: [SqsScaler]
+    queues:  [antivirus-tasks]

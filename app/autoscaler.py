@@ -3,8 +3,9 @@ import sched
 import time
 
 from app.app import App
-from app.paas_client import PaasClient
 from app.config import config
+from app.exceptions import CannotLoadConfig
+from app.paas_client import PaasClient
 from app.utils import get_statsd_client
 
 
@@ -26,7 +27,7 @@ class Autoscaler:
             except Exception as e:
                 msg = "Could not load {}: The error was: {}".format(app, e)
                 logging.critical(msg)
-                raise Exception(msg)
+                raise CannotLoadConfig(msg)
         self.autoscaler_apps = apps
 
     def _now(self):

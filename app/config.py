@@ -1,7 +1,10 @@
 from pathlib import Path
+import logging
 import os
 
 import yaml
+
+from app.exceptions import CannotLoadConfig
 
 
 def read_config():
@@ -11,7 +14,8 @@ def read_config():
             return yaml.safe_load(f)
     except Exception as e:
         msg = "Could not load config from path {}: {}".format(config_path, str(e))
-        raise Exception(msg)
+        logging.critical(msg)
+        raise CannotLoadConfig(msg)
 
 
 config = read_config()

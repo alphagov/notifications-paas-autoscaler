@@ -1,5 +1,6 @@
 from datetime import datetime
 import json
+import logging
 import os
 
 import psycopg2
@@ -55,16 +56,21 @@ class DbQueryScaler(BaseScaler):
         try:
             self.db_uri = json.loads(
                 os.environ['VCAP_SERVICES'])['postgres'][0]['credentials']['uri']
-        except KeyError:
-            # TODO: log error
+        except KeyError as e:
+            msg = str(e)
+            logging.error(msg)
             self.db_uri = None
 
     def run_query(self):
         if self.query is None:
-            raise Exception("No query has been defined")
+            msg = "No query has been defined"
+            logging.critical(msg)
+            raise Exception(msg)
 
         if self.db_uri is None:
-            raise Exception("db service not configured")
+            msg = "Database service not configured"
+            logging.critical(msg)
+            raise Exception(msg)
 
         with psycopg2.connect(self.db_uri) as conn:
             with conn.cursor() as cursor:

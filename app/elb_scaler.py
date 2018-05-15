@@ -1,4 +1,5 @@
 from datetime import timedelta
+import logging
 import math
 
 from app.base_scalers import AwsBaseScaler
@@ -16,15 +17,15 @@ class ElbScaler(AwsBaseScaler):
             self.cloudwatch_client = super()._get_boto3_client('cloudwatch', region_name=self.aws_region)
 
     def get_desired_instance_count(self):
-        print('Processing {}'.format(self.app_name))
+        logging.debug('Processing {}'.format(self.app_name))
         request_counts = self._get_request_counts()
         if len(request_counts) == 0:
             request_counts = [0]
-        print('Request counts: {}'.format(request_counts))
+        logging.debug('Request counts: {}'.format(request_counts))
 
         # Keep the highest request count over the specified time range
         highest_request_count = max(request_counts)
-        print('Highest request count: {}'.format(highest_request_count))
+        logging.debug('Highest request count: {}'.format(highest_request_count))
 
         self.gauge("{}.request-count".format(self.app_name), highest_request_count)
         desired_instance_count = int(math.ceil(highest_request_count / float(self.threshold)))

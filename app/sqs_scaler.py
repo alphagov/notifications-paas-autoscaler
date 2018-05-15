@@ -1,3 +1,4 @@
+import logging
 import math
 import os
 
@@ -16,9 +17,9 @@ class SqsScaler(AwsBaseScaler):
             self.sqs_client = super()._get_boto3_client('sqs', region_name=self.aws_region)
 
     def get_desired_instance_count(self):
-        print('Processing {}'.format(self.app_name))
+        logging.debug('Processing {}'.format(self.app_name))
         total_message_count = self._get_total_message_count(self.queues)
-        print('Total message count: {}'.format(total_message_count))
+        logging.debug('Total message count: {}'.format(total_message_count))
         desired_instance_count = int(math.ceil(total_message_count / float(self.threshold)))
 
         return self.normalize_desired_instance_count(desired_instance_count)
@@ -36,7 +37,7 @@ class SqsScaler(AwsBaseScaler):
             QueueUrl=self._get_sqs_queue_url(name),
             AttributeNames=['ApproximateNumberOfMessages'])
         result = int(response['Attributes']['ApproximateNumberOfMessages'])
-        print('Messages in {}: {}'.format(name, result))
+        logging.debug('Messages in {}: {}'.format(name, result))
         return result
 
     def _get_message_count(self, queue):

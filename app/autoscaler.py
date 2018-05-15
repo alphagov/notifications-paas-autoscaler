@@ -25,7 +25,7 @@ class Autoscaler:
                 apps.append(App(**app))
             except Exception as e:
                 msg = "Could not load {}: The error was: {}".format(app, e)
-                print(msg)
+                logging.critical(msg)
                 raise Exception(msg)
         self.autoscaler_apps = apps
 
@@ -35,7 +35,7 @@ class Autoscaler:
     def _schedule(self):
         current_time = time.time()
         run_at = current_time + self.schedule_interval_seconds
-        print('Next run time {}'.format(str(run_at)))
+        logging.debug('Next run time {}'.format(str(run_at)))
 
         # Copying from docs: https://docs.python.org/3/library/sched.html#sched.scheduler.run
         #
@@ -58,7 +58,7 @@ class Autoscaler:
 
         for app in self.autoscaler_apps:
             if app.name not in paas_apps:
-                print("Application {} does not exist, check the config and ensure it is deployed".format(app.name))
+                logging.warning("Application {} does not exist, check the config and ensure it is deployed".format(app.name))
                 continue
             app.refresh_cf_info(paas_apps[app.name])
             self.scale(app)
@@ -66,7 +66,7 @@ class Autoscaler:
         self._schedule()
 
     def _do_scale(self, app, current_instance_count, desired_instance_count):
-        print('Scaling {} from {} to {}'.format(app.name, current_instance_count, desired_instance_count))
+        logging.info('Scaling {} from {} to {}'.format(app.name, current_instance_count, desired_instance_count))
         self.statsd_client.gauge("{}.instance-count".format(app.name), desired_instance_count)
         try:
             self.paas_client.apps._update(app.cf_attributes['guid'], {'instances': desired_instance_count})
@@ -105,11 +105,11 @@ class Autoscaler:
 
         # the following are only checked before scaling down
         if self._recent_scale(app_name, self.last_scale_up, self.cooldown_seconds_after_scale_up):
-            print("Skipping scale down due to recent scale up event")
+            logging.info("Skipping scale down due to recent scale up event")
             return True
 
         if self._recent_scale(app_name, self.last_scale_down, self.cooldown_seconds_after_scale_down):
-            print("Skipping scale down due to a recent scale down event")
+            logging.info("Skipping scale down due to a recent scale down event")
             return True
 
     def _recent_scale(self, app_name, last_scale, timeout):

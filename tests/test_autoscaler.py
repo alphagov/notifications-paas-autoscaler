@@ -17,7 +17,7 @@ class TestScale:
     def _get_mock_app(self, name, paas_client_attributes):
         app = Mock()
         app.name = name
-        app.cf_attributes = cf_attributes
+        app.cf_attributes = paas_client_attributes
 
         return app
 
@@ -96,8 +96,8 @@ class TestScale:
         mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 4)
         mock_paas_client.return_value.assert_not_called()
 
-    def test_scale_paas_app_fewer_instances_missing_recent_scale_information(self, mock_get_statsd_client, mock_paas_client,
-                                                                             *args):
+    def test_scale_paas_app_fewer_instances_missing_recent_scale_information(self, mock_get_statsd_client,
+                                                                             mock_paas_client, *args):
         app_guid = '11111-11111-11111111-1111'
         app_name = 'app-name-1'
         cf_info = {'name': app_name, 'instances': 4, 'guid': app_guid}

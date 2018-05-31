@@ -32,6 +32,11 @@ class TestScheduleScaler:
         (WORKDAY_1020, 1),
         (WEEKEND_1420, 3),
         (WEEKEND_1020, 1),
+    ], ids=[
+        "Workday in schedule",
+        "Workday off schedule",
+        "Weekend in schedule",
+        "Weekend off schedule",
     ])
     def test_get_desired_instance_count_schedule(self, now, expected):
         input_attrs = {
@@ -47,6 +52,9 @@ class TestScheduleScaler:
     @pytest.mark.parametrize('enabled,expected', [
         (True, 3),
         (False, 1),
+    ], ids=[
+        "Scheduled scaler enabled",
+        "Scheduled scaler disabled",
     ])
     def test_disabled_schedule(self, enabled, expected):
         input_attrs = {

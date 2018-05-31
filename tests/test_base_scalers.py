@@ -27,6 +27,11 @@ class TestBaseScaler:
         (3, 5, 7, 5),
         (3, 5, 2, 3),
         (3, 5, -1, 3),
+    ], ids=[
+        "Desired within limits",
+        "Desired above upper limit",
+        "Desired below lower limit",
+        "Desired negative",
     ])
     def test_normalize_desired_instance_count(
             self, min_instances, max_instances, desired_instances, expected_instances):

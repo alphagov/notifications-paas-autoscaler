@@ -96,4 +96,4 @@ test: flake8
 	@echo "SQS_QUEUE_PREFIX: test" >> data.yml
 	@echo "STATSD_ENABLED: False" >> data.yml
 	@make generate-config
-	pytest --cov=app/ tests/
+	pytest -v --cov=app/ tests/

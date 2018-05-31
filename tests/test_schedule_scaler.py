@@ -1,6 +1,7 @@
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 import datetime
 
+from freezegun import freeze_time
 import pytest
 
 import app
@@ -45,9 +46,9 @@ class TestScheduleScaler:
             'threshold': 1500,
             'schedule': {'workdays': ['13:00-15:00'], 'weekends': ['13:00-15:00'], 'scale_factor': 0.6}
         }
-        schedule_scaler = ScheduleScaler(**input_attrs)
-        schedule_scaler._now = Mock(return_value=now)
-        assert schedule_scaler.get_desired_instance_count() == expected
+        with freeze_time(now):
+            schedule_scaler = ScheduleScaler(**input_attrs)
+            assert schedule_scaler.get_desired_instance_count() == expected
 
     @pytest.mark.parametrize('enabled,expected', [
         (True, 3),

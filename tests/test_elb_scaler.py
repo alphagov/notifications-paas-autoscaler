@@ -1,6 +1,8 @@
 from unittest.mock import patch, Mock
 import datetime
 
+from freezegun import freeze_time
+
 from app.elb_scaler import ElbScaler
 
 
@@ -33,10 +35,10 @@ class TestElbScaler:
         assert elb_scaler.cloudwatch_client == mock_client.return_value
         mock_client.assert_called_with('cloudwatch', region_name='eu-west-1')
 
+    @freeze_time("2018-03-15 15:10:00")
     def test_get_desired_instance_count(self, mock_boto3):
         # set to 5 minutes, to have a smaller mocked response
         self.input_attrs['request_count_time_range'] = {'minutes': 5}
-        now = datetime.datetime(2018, 3, 15, 10, 00, 0, 720029)
         cloudwatch_client = mock_boto3.client.return_value
         cloudwatch_client.get_metric_statistics.return_value = {
             'Datapoints': [
@@ -49,7 +51,6 @@ class TestElbScaler:
 
         elb_scaler = ElbScaler(**self.input_attrs)
         elb_scaler.statsd_client = Mock()
-        elb_scaler._now = Mock(return_value=now)
 
         assert elb_scaler.get_desired_instance_count() == 2
         cloudwatch_client.get_metric_statistics.assert_called_once_with(
@@ -61,8 +62,8 @@ class TestElbScaler:
                     'Value': self.input_attrs['elb_name']
                 },
             ],
-            StartTime=now - datetime.timedelta(**self.input_attrs['request_count_time_range']),
-            EndTime=now,
+            StartTime=elb_scaler._now() - datetime.timedelta(**self.input_attrs['request_count_time_range']),
+            EndTime=elb_scaler._now(),
             Period=60,
             Statistics=['Sum'],
             Unit='Count')

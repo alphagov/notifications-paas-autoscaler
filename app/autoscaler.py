@@ -34,7 +34,7 @@ class Autoscaler:
         return time.time()
 
     def _schedule(self):
-        current_time = time.time()
+        current_time = self._now()
         run_at = current_time + self.schedule_interval_seconds
         logging.debug('Next run time {}'.format(str(run_at)))
 
@@ -115,4 +115,4 @@ class Autoscaler:
         if not last_scale.get(app_name):
             last_scale[app_name] = now
 
-        return last_scale[app_name] > now - timeout
+        return now < (last_scale[app_name] + timeout)

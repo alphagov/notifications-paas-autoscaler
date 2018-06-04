@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from app.paas_client import PaasClient
 
-env = {
+ENV = {
     'CF_ORG': 'notify',
     'CF_SPACE': 'test',
     'CF_API_URL': 'https://api.test.cf.com',
@@ -68,7 +68,7 @@ MockOrgs = [
 ]
 
 
-@patch.dict('os.environ', env)
+@patch.dict('os.environ', ENV)
 @patch('app.paas_client.CloudFoundryClient')
 class TestPaasClient:
     def test_paas_client_login_fails_waits_5_minutes(self, mock_paas_client_client, *args):

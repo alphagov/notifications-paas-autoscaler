@@ -1,4 +1,3 @@
-import time
 import datetime
 
 from freezegun import freeze_time
@@ -8,7 +7,6 @@ import yaml
 from app.autoscaler import Autoscaler
 from app.base_scalers import AwsBaseScaler
 from app.elb_scaler import ElbScaler
-from app.schedule_scaler import ScheduleScaler
 from app.app import App
 
 SCALEUP_COOLDOWN_SECONDS = 300
@@ -20,6 +18,9 @@ SCALEDOWN_COOLDOWN_SECONDS = 60
 @patch('app.autoscaler.PaasClient')
 @patch('app.autoscaler.get_statsd_client')
 class TestScale:
+    def _now(self):
+        return datetime.datetime.utcnow().timestamp()
+
     def _get_mock_app(self, name, paas_client_attributes):
         app = Mock()
         app.name = name
@@ -64,8 +65,8 @@ class TestScale:
         autoscaler.cooldown_seconds_after_scale_down = SCALEDOWN_COOLDOWN_SECONDS
 
         # we scaled down 600 seconds ago, scaled up 325 seconds ago
-        autoscaler.last_scale_down[app_name] = time.time() - SCALEDOWN_COOLDOWN_SECONDS * 10
-        autoscaler.last_scale_up[app_name] = time.time() - (SCALEUP_COOLDOWN_SECONDS + 25)
+        autoscaler.last_scale_down[app_name] = self._now() - SCALEDOWN_COOLDOWN_SECONDS * 10
+        autoscaler.last_scale_up[app_name] = self._now() - (SCALEUP_COOLDOWN_SECONDS + 25)
         autoscaler.scale(app)
         mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 3)
         mock_paas_client.return_value.apps._update.assert_called_once_with(app_guid, {'instances': 3})
@@ -83,8 +84,8 @@ class TestScale:
         autoscaler.cooldown_seconds_after_scale_down = SCALEDOWN_COOLDOWN_SECONDS
 
         # we scaled down 600 seconds ago, scaled up 100 seconds ago
-        autoscaler.last_scale_down[app_name] = time.time() - SCALEDOWN_COOLDOWN_SECONDS * 10
-        autoscaler.last_scale_up[app_name] = time.time() - 100
+        autoscaler.last_scale_down[app_name] = self._now() - SCALEDOWN_COOLDOWN_SECONDS * 10
+        autoscaler.last_scale_up[app_name] = self._now() - 100
         autoscaler.scale(app)
         mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 4)
         mock_paas_client.return_value.assert_not_called()
@@ -101,8 +102,8 @@ class TestScale:
         autoscaler.cooldown_seconds_after_scale_down = SCALEDOWN_COOLDOWN_SECONDS
 
         # we scaled up 600 seconds ago, scaled down 30 seconds ago
-        autoscaler.last_scale_down[app_name] = time.time() - 30
-        autoscaler.last_scale_up[app_name] = time.time() - 600
+        autoscaler.last_scale_down[app_name] = self._now() - 30
+        autoscaler.last_scale_up[app_name] = self._now() - 600
 
         autoscaler.scale(app)
         mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 4)

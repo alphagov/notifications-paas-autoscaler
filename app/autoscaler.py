@@ -1,3 +1,4 @@
+import datetime
 import logging
 import sched
 import time
@@ -31,7 +32,7 @@ class Autoscaler:
         self.autoscaler_apps = apps
 
     def _now(self):
-        return time.time()
+        return datetime.datetime.utcnow().timestamp()
 
     def _schedule(self):
         current_time = self._now()

@@ -125,22 +125,9 @@ class TestScale:
         mock_paas_client.return_value.assert_not_called()
 
 
-@patch.object(AwsBaseScaler, '_get_boto3_client')
-@patch('app.autoscaler.PaasClient')
-@patch('app.autoscaler.get_statsd_client')
-@patch.object(ScheduleScaler, '_now', return_value=datetime.datetime(2018, 3, 15, 4, 20, 00))
-@patch.object(ElbScaler, 'gauge')
-@patch.object(ElbScaler, '_get_boto3_client')
-@patch.object(ElbScaler, '_get_request_counts')
 class TestAutoscalerAlmostEndToEnd:
-    def test_scale_up(self,
-                      mock_get_request_counts,
-                      mock_get_boto3_client,
-                      mock_gauge,
-                      mock_schedule_scaler_now,
-                      mock_get_statsd_client,
-                      mock_paas_client,
-                      *args):
+    def test_scale_up(self, mocker):
+        """Test consequent scalings on and off schedule"""
         app_name = 'test-api-app'
         app_config = {
             'name': app_name,
@@ -159,33 +146,39 @@ scale_factor: 0.8
 '''
         }
 
+        mocker.patch.object(AwsBaseScaler, '_get_boto3_client')
+        mocker.patch.object(ElbScaler, '_get_boto3_client')
+        mocker.patch.object(ElbScaler, 'gauge')
+        mocker.patch.object(ElbScaler, '_get_request_counts', return_value=[1300, 1500, 1600, 1700, 1700])
+        mock_paas_client = mocker.patch('app.autoscaler.PaasClient')
+        mock_get_statsd_client = mocker.patch('app.autoscaler.get_statsd_client')
+
         mock_paas_client.return_value.get_paas_apps.return_value = {
             app_name: {'name': app_name, 'instances': 5, 'guid': app_name + '-guid'},
         }
 
-        # to trigger a scale up we need at least one value greater than min_instances * threshold
-        mock_get_request_counts.return_value = [1300, 1500, 1600, 1700, 1700]
-        app_config['schedule'] = yaml.safe_load(app_config['schedule'])
-        app = App(**app_config)
+        with freeze_time("Thursday 31 May 2018 06:00:00") as frozen_time:
+            # to trigger a scale up we need at least one value greater than min_instances * threshold
+            app_config['schedule'] = yaml.safe_load(app_config['schedule'])
+            app = App(**app_config)
 
-        autoscaler = Autoscaler()
-        autoscaler.cooldown_seconds_after_scale_up = 300
-        autoscaler.cooldown_seconds_after_scale_down = 60
-        autoscaler._now = Mock(datetime.datetime(2018, 3, 17, 10, 20, 00).timestamp())
-        autoscaler._schedule = Mock()
+            autoscaler = Autoscaler()
+            autoscaler.cooldown_seconds_after_scale_up = 300
+            autoscaler.cooldown_seconds_after_scale_down = 60
+            autoscaler._schedule = Mock()
 
-        autoscaler.autoscaler_apps = [app]
-        autoscaler.run_task()
+            autoscaler.autoscaler_apps = [app]
+            autoscaler.run_task()
 
-        mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 6)
-        mock_paas_client.return_value.apps._update.assert_called_once_with(app_name + '-guid', {'instances': 6})
+            mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 6)
+            mock_paas_client.return_value.apps._update.assert_called_once_with(app_name + '-guid', {'instances': 6})
 
-        # emulate that we are running in schedule now, which means max_instances * scale_factor
-        mock_schedule_scaler_now.return_value = datetime.datetime(2018, 3, 15, 14, 20, 00)
-        mock_get_statsd_client.return_value.reset_mock()
-        mock_paas_client.return_value.apps._update.reset_mock()
+            # emulate that we are running in schedule now, which means max_instances * scale_factor
+            frozen_time.move_to("Thursday 31 May 2018 13:15:00")
+            mock_get_statsd_client.return_value.reset_mock()
+            mock_paas_client.return_value.apps._update.reset_mock()
 
-        autoscaler.run_task()
+            autoscaler.run_task()
 
-        mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 8)
-        mock_paas_client.return_value.apps._update.assert_called_once_with(app_name + '-guid', {'instances': 8})
+            mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 8)
+            mock_paas_client.return_value.apps._update.assert_called_once_with(app_name + '-guid', {'instances': 8})

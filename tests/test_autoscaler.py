@@ -50,7 +50,7 @@ class TestScale:
         autoscaler = Autoscaler()
         autoscaler.scale(app)
         mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 6)
-        mock_paas_client.return_value.apps._update.assert_called_once_with(app_guid, {'instances': 6})
+        mock_paas_client.return_value.update.assert_called_once_with(app_guid, 6)
 
     def test_scale_paas_app_much_fewer_instances(self, mock_get_statsd_client, mock_paas_client, *args):
         """ We don't scale down more than 1 instance at a time """
@@ -69,7 +69,7 @@ class TestScale:
         autoscaler.last_scale_up[app_name] = self._now() - (SCALEUP_COOLDOWN_SECONDS + 25)
         autoscaler.scale(app)
         mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 3)
-        mock_paas_client.return_value.apps._update.assert_called_once_with(app_guid, {'instances': 3})
+        mock_paas_client.return_value.update.assert_called_once_with(app_guid, 3)
 
     def test_scale_paas_app_fewer_instances_recent_scale_up(self, mock_get_statsd_client, mock_paas_client, *args):
         """ We don't scale down after a recent scale up event """
@@ -171,14 +171,14 @@ scale_factor: 0.8
             autoscaler.run_task()
 
             mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 6)
-            mock_paas_client.return_value.apps._update.assert_called_once_with(app_name + '-guid', {'instances': 6})
+            mock_paas_client.return_value.update.assert_called_once_with(app_name + '-guid', 6)
 
             # emulate that we are running in schedule now, which means max_instances * scale_factor
             frozen_time.move_to("Thursday 31 May 2018 13:15:00")
             mock_get_statsd_client.return_value.reset_mock()
-            mock_paas_client.return_value.apps._update.reset_mock()
+            mock_paas_client.return_value.update.reset_mock()
 
             autoscaler.run_task()
 
             mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 8)
-            mock_paas_client.return_value.apps._update.assert_called_once_with(app_name + '-guid', {'instances': 8})
+            mock_paas_client.return_value.update.assert_called_once_with(app_name + '-guid', 8)

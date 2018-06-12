@@ -72,7 +72,7 @@ class Autoscaler:
 
     def _do_scale(self, app, new_instance_count):
         try:
-            self.paas_client.apps._update(app.cf_attributes['guid'], {'instances': new_instance_count})
+            self.paas_client.update(app.cf_attributes['guid'], new_instance_count)
         except BaseException as e:
             msg = 'Failed to scale {}: {}'.format(app.name, str(e))
             logging.error(msg)

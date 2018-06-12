@@ -118,8 +118,8 @@ class TestScale:
         app.get_desired_instance_count = Mock(return_value=3)
 
         autoscaler = Autoscaler()
-        autoscaler.cooldown_seconds_after_scale_up = 300
-        autoscaler.cooldown_seconds_after_scale_down = 60
+        autoscaler.cooldown_seconds_after_scale_up = SCALEUP_COOLDOWN_SECONDS
+        autoscaler.cooldown_seconds_after_scale_down = SCALEDOWN_COOLDOWN_SECONDS
         autoscaler.scale(app)
         mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 4)
         mock_paas_client.return_value.assert_not_called()

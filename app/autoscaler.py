@@ -16,6 +16,8 @@ class Autoscaler:
         self.last_scale_down = {}
         self.scheduler = sched.scheduler(self._now, time.sleep)
         self.schedule_interval_seconds = config['GENERAL']['SCHEDULE_INTERVAL_SECONDS']
+        self.cooldown_seconds_after_scale_up = config['GENERAL']['COOLDOWN_SECONDS_AFTER_SCALE_UP']
+        self.cooldown_seconds_after_scale_down = config['GENERAL']['COOLDOWN_SECONDS_AFTER_SCALE_DOWN']
         self.statsd_client = get_statsd_client()
         self.paas_client = PaasClient()
         self._load_autoscaler_apps()

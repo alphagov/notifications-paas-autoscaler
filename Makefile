@@ -30,7 +30,6 @@ preview:
 	@echo "MAX_INSTANCE_COUNT_HIGH: 2" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_LOW: 1" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_MEDIUM: 1" >> data.yml
-	@echo "MAX_INSTANCE_COUNT_V_HIGH: 3" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_HIGH: 1" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_LOW: 1" >> data.yml
 	@echo "SCHEDULE_SCALER_ENABLED: False" >> data.yml
@@ -45,7 +44,6 @@ staging:
 	@echo "MAX_INSTANCE_COUNT_HIGH: 20" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_LOW: 5" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_MEDIUM: 10" >> data.yml
-	@echo "MAX_INSTANCE_COUNT_V_HIGH: 30" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_HIGH: 4" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_LOW: 2" >> data.yml
 	@echo "SCHEDULE_SCALER_ENABLED: False" >> data.yml
@@ -60,7 +58,6 @@ production:
 	@echo "MAX_INSTANCE_COUNT_HIGH: 20" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_LOW: 5" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_MEDIUM: 10" >> data.yml
-	@echo "MAX_INSTANCE_COUNT_V_HIGH: 30" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_HIGH: 4" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_LOW: 2" >> data.yml
 	@echo "SCHEDULE_SCALER_ENABLED: True" >> data.yml
@@ -89,7 +86,6 @@ test: flake8
 	@echo "MAX_INSTANCE_COUNT_HIGH: 20" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_LOW: 5" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_MEDIUM: 10" >> data.yml
-	@echo "MAX_INSTANCE_COUNT_V_HIGH: 30" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_HIGH: 4" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_LOW: 2" >> data.yml
 	@echo "SCHEDULE_SCALER_ENABLED: True" >> data.yml

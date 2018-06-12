@@ -107,7 +107,7 @@ class Autoscaler:
         self.statsd_client.gauge("{}.instance-count".format(app_name), new_instance_count)
 
         if current_instance_count != new_instance_count:
-            logging.info('Scaling {} from {} to {}'.format(app.name, current_instance_count, desired_instance_count))
+            logging.info('Scaling {} from {} to {}'.format(app.name, current_instance_count, new_instance_count))
             self._do_scale(app, new_instance_count)
 
     def _recent_scale(self, app_name, last_scale, timeout):

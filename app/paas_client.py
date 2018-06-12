@@ -15,6 +15,9 @@ class PaasClient:
         self.username = os.environ['CF_USERNAME']
         self.password = os.environ['CF_PASSWORD']
 
+    def update(self, guid, instances):
+        self.client.apps._update(guid, {'instances': instances})
+
     def get_cloudfoundry_client(self):
         if self.client is None:
             proxy = dict(http=os.environ.get('HTTP_PROXY', ''), https=os.environ.get('HTTPS_PROXY', ''))

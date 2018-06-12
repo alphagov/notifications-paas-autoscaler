@@ -15,53 +15,85 @@ venv/bin/activate:
 dependencies: venv ## Install build dependencies
 	. venv/bin/activate && pip3 install -r requirements.txt
 
-generate-manifest:
-	@erb manifest.yml.erb
+generate-config:
+	@$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
+	@echo "COOLDOWN_SECONDS_AFTER_SCALE_UP: 300" >> data.yml
+	@echo "COOLDOWN_SECONDS_AFTER_SCALE_DOWN: 60" >> data.yml
+	@echo "DEFAULT_SCHEDULE_SCALE_FACTOR: 0.6" >> data.yml
+	@jinja2 --strict --format=yml config.tpl.yml data.yml > config.yml
+
 
 preview:
-	$(eval export CF_SPACE=preview)
-	$(eval export SQS_QUEUE_PREFIX=preview)
-	$(eval export CF_MAX_INSTANCE_COUNT_V_HIGH=3)
-	$(eval export CF_MAX_INSTANCE_COUNT_HIGH=2)
-	$(eval export CF_MAX_INSTANCE_COUNT_MEDIUM=1)
-	$(eval export CF_MAX_INSTANCE_COUNT_LOW=1)
-	$(eval export CF_MIN_INSTANCE_COUNT_HIGH=1)
-	$(eval export CF_MIN_INSTANCE_COUNT_LOW=1)
-	$(eval export CF_SCHEDULED_SCALE_FACTOR=0)
-	$(eval export CF_BUFFER_INSTANCES=0)
-	$(eval export STATSD_ENABLED=False)
-	@true
+	@if [ -f data.yml ]; then rm data.yml; fi
+	@echo "---" >> data.yml
+	@echo "CF_SPACE: preview" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_HIGH: 2" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_LOW: 1" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_MEDIUM: 1" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_V_HIGH: 3" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_HIGH: 1" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_LOW: 1" >> data.yml
+	@echo "SCHEDULE_SCALER_ENABLED: False" >> data.yml
+	@echo "SQS_QUEUE_PREFIX: preview" >> data.yml
+	@echo "STATSD_ENABLED: True" >> data.yml
+	@$(eval export CF_SPACE=preview)
 
 staging:
-	$(eval export CF_SPACE=staging)
-	$(eval export SQS_QUEUE_PREFIX=staging)
-	$(eval export CF_MAX_INSTANCE_COUNT_V_HIGH=30)
-	$(eval export CF_MAX_INSTANCE_COUNT_HIGH=20)
-	$(eval export CF_MAX_INSTANCE_COUNT_MEDIUM=10)
-	$(eval export CF_MAX_INSTANCE_COUNT_LOW=5)
-	$(eval export CF_MIN_INSTANCE_COUNT_HIGH=4)
-	$(eval export CF_MIN_INSTANCE_COUNT_LOW=2)
-	$(eval export CF_SCHEDULED_SCALE_FACTOR=0)
-	$(eval export CF_BUFFER_INSTANCES=0)
-	$(eval export STATSD_ENABLED=True)
-	@true
+	@if [ -f data.yml ]; then rm data.yml; fi
+	@echo "---" >> data.yml
+	@echo "CF_SPACE: staging" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_HIGH: 20" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_LOW: 5" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_MEDIUM: 10" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_V_HIGH: 30" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_HIGH: 4" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_LOW: 2" >> data.yml
+	@echo "SCHEDULE_SCALER_ENABLED: False" >> data.yml
+	@echo "SQS_QUEUE_PREFIX: staging" >> data.yml
+	@echo "STATSD_ENABLED: True" >> data.yml
+	@$(eval export CF_SPACE=staging)
 
 production:
-	$(eval export CF_SPACE=production)
-	$(eval export SQS_QUEUE_PREFIX=live)
-	$(eval export CF_MAX_INSTANCE_COUNT_V_HIGH=30)
-	$(eval export CF_MAX_INSTANCE_COUNT_HIGH=20)
-	$(eval export CF_MAX_INSTANCE_COUNT_MEDIUM=10)
-	$(eval export CF_MAX_INSTANCE_COUNT_LOW=5)
-	$(eval export CF_MIN_INSTANCE_COUNT_HIGH=4)
-	$(eval export CF_MIN_INSTANCE_COUNT_LOW=2)
-	$(eval export CF_BUFFER_INSTANCES=0)
-	$(eval export CF_SCHEDULED_SCALE_FACTOR=0.6)
-	$(eval export STATSD_ENABLED=True)
-	@true
+	@if [ -f data.yml ]; then rm data.yml; fi
+	@echo "---" >> data.yml
+	@echo "CF_SPACE: production" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_HIGH: 20" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_LOW: 5" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_MEDIUM: 10" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_V_HIGH: 30" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_HIGH: 4" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_LOW: 2" >> data.yml
+	@echo "SCHEDULE_SCALER_ENABLED: True" >> data.yml
+	@echo "SQS_QUEUE_PREFIX: live" >> data.yml
+	@echo "STATSD_ENABLED: True" >> data.yml
+	@$(eval export CF_SPACE=production)
 
-cf-push:
+cf-push: generate-config
 	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
 	cf target -s ${CF_SPACE}
 	cf unbind-service notify-paas-autoscaler notify-db
-	cf push -f <(make generate-manifest)
+	cf push -f manifest.yml
+
+.PHONY: flake8
+flake8:
+	flake8 app/ tests/ --max-line-length=120
+
+.PHONY: test
+test: flake8
+	@$(eval export CONFIG_PATH=$(shell pwd)/config.yml)
+	@$(eval export STATSD_PREFIX=test)
+	@$(eval export CF_SPACE=test)
+	@if [ -f data.yml ]; then rm data.yml; fi
+	@echo "---" >> data.yml
+	@echo "CF_SPACE: test" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_HIGH: 20" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_LOW: 5" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_MEDIUM: 10" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_V_HIGH: 30" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_HIGH: 4" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_LOW: 2" >> data.yml
+	@echo "SCHEDULE_SCALER_ENABLED: True" >> data.yml
+	@echo "SQS_QUEUE_PREFIX: test" >> data.yml
+	@echo "STATSD_ENABLED: False" >> data.yml
+	@make generate-config
+	pytest -v --cov=app/ tests/

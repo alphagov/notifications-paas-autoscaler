@@ -1,0 +1,114 @@
+---
+GENERAL:
+  # cf config
+  CF_API_URL: https://api.cloud.service.gov.uk
+  CF_ORG: govuk-notify
+  CF_SPACE: {{ CF_SPACE }}
+
+  # general autoscaler config
+  SCHEDULE_INTERVAL_SECONDS: 5
+  COOLDOWN_SECONDS_AFTER_SCALE_UP: {{ COOLDOWN_SECONDS_AFTER_SCALE_UP }}
+  COOLDOWN_SECONDS_AFTER_SCALE_DOWN: {{ COOLDOWN_SECONDS_AFTER_SCALE_DOWN }}
+  STATSD_ENABLED: {{ STATSD_ENABLED }}
+
+  # instance limits
+  MIN_INSTANCE_COUNT_HIGH: {{ MIN_INSTANCE_COUNT_HIGH }}
+  MIN_INSTANCE_COUNT_LOW: {{ MIN_INSTANCE_COUNT_LOW }}
+  MAX_INSTANCE_COUNT_HIGH: {{ MAX_INSTANCE_COUNT_HIGH }}
+  MAX_INSTANCE_COUNT_MEDIUM: {{ MAX_INSTANCE_COUNT_MEDIUM }}
+  MAX_INSTANCE_COUNT_LOW: {{ MAX_INSTANCE_COUNT_LOW }}
+
+SCALERS:
+  AWS_REGION: eu-west-1
+  SQS_QUEUE_PREFIX: {{ SQS_QUEUE_PREFIX }}
+  DEFAULT_SCHEDULE_SCALE_FACTOR: {{ DEFAULT_SCHEDULE_SCALE_FACTOR }}
+  SCHEDULE_SCALER_ENABLED: {{ SCHEDULE_SCALER_ENABLED }}
+
+APPS:
+  - name: notify-api
+    min_instances: {{ MIN_INSTANCE_COUNT_HIGH }}
+    max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
+    threshold: 2000
+    scalers: [ElbScaler, ScheduleScaler]
+    elb_name: 'notify-paas-proxy'
+    schedule:
+      workdays:
+        - 08:00-19:00
+      weekends:
+        - 09:00-17:00
+
+  - name: notify-delivery-worker-sender
+    min_instances: {{ MIN_INSTANCE_COUNT_HIGH }}
+    max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
+    threshold: 600
+    scalers: [SqsScaler, ScheduleScaler, ScheduledJobsScaler]
+    queues: [send-sms-tasks, send-email-tasks]
+    schedule:
+      scale_factor: 0.4
+      workdays:
+        - 08:00-19:00
+      weekends:
+        - 08:00-19:00
+
+  - name: notify-delivery-worker-database
+    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
+    max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
+    threshold: 250
+    scalers: [SqsScaler]
+    queues:  [database-tasks]
+
+  - name: notify-delivery-worker
+    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
+    max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
+    threshold: 250
+    scalers: [SqsScaler]
+    queues:  [notify-internal-tasks, retry-tasks, job-tasks]
+
+  - name: notify-delivery-worker-research
+    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
+    max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
+    threshold: 250
+    scalers: [SqsScaler]
+    queues:  [research-mode-tasks]
+
+  - name: notify-delivery-worker-priority
+    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
+    max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
+    threshold: 250
+    scalers: [SqsScaler]
+    queues:  [priority-tasks]
+
+  - name: notify-delivery-worker-periodic
+    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
+    max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
+    threshold: 250
+    scalers: [SqsScaler]
+    queues:  [periodic-tasks, statistics-tasks]
+
+  - name: notify-delivery-worker-receipts
+    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
+    max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
+    threshold: 250
+    scalers: [SqsScaler]
+    queues:  [ses-callbacks]
+
+  - name: notify-template-preview
+    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
+    max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
+    threshold: 8
+    scalers: [SqsScaler, ScheduledJobsScaler]
+    queues:  [create-letters-pdf-tasks]
+
+  - name: notify-delivery-worker-service-callbacks
+    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
+    max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
+    threshold: 500
+    scalers: [SqsScaler, ScheduledJobsScaler]
+    queues:  [service-callbacks]
+
+  - name: notify-antivirus
+    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
+    max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
+    threshold: 50
+    scalers: [SqsScaler]
+    queues:  [antivirus-tasks]

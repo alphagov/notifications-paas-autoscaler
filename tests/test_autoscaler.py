@@ -49,6 +49,7 @@ class TestScale:
 
         autoscaler = Autoscaler()
         autoscaler.scale(app)
+        assert autoscaler.last_scale_up[app_name] == self._now()
         mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 6)
         mock_paas_client.return_value.update.assert_called_once_with(app_guid, 6)
 
@@ -68,6 +69,7 @@ class TestScale:
         autoscaler.last_scale_down[app_name] = self._now() - SCALEDOWN_COOLDOWN_SECONDS * 10
         autoscaler.last_scale_up[app_name] = self._now() - (SCALEUP_COOLDOWN_SECONDS + 25)
         autoscaler.scale(app)
+        assert autoscaler.last_scale_down[app_name] == self._now()
         mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 3)
         mock_paas_client.return_value.update.assert_called_once_with(app_guid, 3)
 
@@ -88,7 +90,7 @@ class TestScale:
         autoscaler.last_scale_up[app_name] = self._now() - 100
         autoscaler.scale(app)
         mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 4)
-        mock_paas_client.return_value.assert_not_called()
+        mock_paas_client.return_value.update.assert_not_called()
 
     def test_scale_paas_app_fewer_instances_recent_scale_down(self, mock_get_statsd_client, mock_paas_client, *args):
         app_guid = '11111-11111-11111111-1111'

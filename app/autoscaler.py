@@ -95,7 +95,7 @@ class Autoscaler:
 
         # scale up
         elif desired > current:
-            self.last_scale_down[app_name] = self._now()
+            self.last_scale_up[app_name] = self._now()
             new_instance_count = desired
 
         return new_instance_count

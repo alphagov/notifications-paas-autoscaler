@@ -119,3 +119,5 @@ test: flake8
 	@echo "STATSD_ENABLED: False" >> data.yml
 	@make generate-config
 	pytest -v --cov=app/ tests/
+	# run specific test with debugger
+	# pytest -s tests/test_autoscaler.py::TestScale::test_scale_paas_app_fewer_instances_recent_scale_up

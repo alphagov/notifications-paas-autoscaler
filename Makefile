@@ -48,6 +48,17 @@ test-with-docker: docker-build
 		govuk/notify-paas-autoscaler:${GIT_COMMIT} \
 		make test
 
+.PHONY: build-paas-artifact
+build-paas-artifact:
+	nm -rf target
+	mkdir -p target
+	zip -y -q -r -x@deploy-exclude.lst target/notifications-paas-autoscaler.zip ./
+
+.PHONY: upload-paas-artifact
+upload-paas-artifact:
+	$(if ${DEPLOY_BUILD_NUMBER},,$(error Must specify DEPLOY_BUILD_NUMBER))
+	$(if ${JENKINS_S3_BUCKET},,$(error Must specify JENKINS_S3_BUCKET))
+	aws s3 cp --region eu-west-1 --sse AES256 target/notifications-paas-autoscaler.zip s3://${JENKINS_S3_BUCKET}/build/notifications-paas-autoscaler/${DEPLOY_BUILD_NUMBER}.zip
 
 preview:
 	@if [ -f data.yml ]; then rm data.yml; fi
@@ -96,6 +107,21 @@ cf-push: generate-config
 	cf target -s ${CF_SPACE}
 	cf unbind-service notify-paas-autoscaler notify-db
 	cf push -f manifest.yml
+
+
+.PHONY: cf-deploy
+cf-deploy: generate-config ## Deploys the app to Cloud Foundry
+	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
+	@cf app --guid notify-paas-autoscaler || exit 1
+	cf rename notify-paas-autoscaler notify-paas-autoscaler-rollback
+	cf push notify-paas-autoscaler -f manifest.yml
+	cf scale -i $$(cf curl /v2/apps/$$(cf app --guid notify-paas-autoscaler-rollback) | jq -r ".entity.instances" 2>/dev/null || echo "1") notify-paas-autoscaler
+	cf stop notify-paas-autoscaler-rollback
+
+	# get the new GUID, and find all crash events for that. If there were any crashes we will abort the deploy.
+	[ $$(cf curl "/v2/events?q=type:app.crash&q=actee:$$(cf app --guid notify-paas-autoscaler)" | jq ".total_results") -eq 0 ]
+	cf delete -f notify-paas-autoscaler-rollback
+
 
 .PHONY: flake8
 flake8:

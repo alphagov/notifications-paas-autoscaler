@@ -1,4 +1,6 @@
 .DEFAULT_GOAL := help
+
+CF_ORG ?= govuk-notify
 GIT_COMMIT ?= $(shell git rev-parse HEAD)
 SHELL := /bin/bash
 DEPLOY_BUILD_NUMBER ?= ${BUILD_NUMBER}
@@ -105,7 +107,8 @@ production:
 
 cf-push: generate-config
 	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
-	cf target -s ${CF_SPACE}
+	$(if ${CF_ORG},,$(error Must specify CF_ORG))
+	cf target -s ${CF_SPACE} -o ${CF_ORG}
 	cf unbind-service notify-paas-autoscaler notify-db
 	cf push -f manifest.yml
 
@@ -113,6 +116,8 @@ cf-push: generate-config
 .PHONY: cf-deploy
 cf-deploy: generate-config ## Deploys the app to Cloud Foundry
 	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
+	$(if ${CF_ORG},,$(error Must specify CF_ORG))
+	cf target -s ${CF_SPACE} -o ${CF_ORG}
 	@cf app --guid notify-paas-autoscaler || exit 1
 	cf rename notify-paas-autoscaler notify-paas-autoscaler-rollback
 	cf push notify-paas-autoscaler -f manifest.yml

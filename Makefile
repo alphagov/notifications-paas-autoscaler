@@ -50,7 +50,7 @@ test-with-docker: docker-build
 
 .PHONY: build-paas-artifact
 build-paas-artifact:
-	nm -rf target
+	rm -rf target
 	mkdir -p target
 	zip -y -q -r -x@deploy-exclude.lst target/notifications-paas-autoscaler.zip ./
 

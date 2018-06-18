@@ -1,6 +1,7 @@
 .DEFAULT_GOAL := help
 GIT_COMMIT ?= $(shell git rev-parse HEAD)
 SHELL := /bin/bash
+DEPLOY_BUILD_NUMBER ?= ${BUILD_NUMBER}
 
 .PHONY: help
 help:

@@ -1,4 +1,5 @@
 .DEFAULT_GOAL := help
+GIT_COMMIT ?= $(shell git rev-parse HEAD)
 SHELL := /bin/bash
 
 .PHONY: help
@@ -22,6 +23,42 @@ generate-config:
 	@echo "DEFAULT_SCHEDULE_SCALE_FACTOR: 0.6" >> data.yml
 	@jinja2 --strict --format=yml config.tpl.yml data.yml > config.yml
 
+.PHONY: docker-build
+docker-build:
+	docker build --pull \
+		--build-arg HTTP_PROXY="${HTTP_PROXY}" \
+		--build-arg HTTPS_PROXY="${HTTP_PROXY}" \
+		--build-arg NO_PROXY="${NO_PROXY}" \
+		-t govuk/notify-paas-autoscaler:${GIT_COMMIT} \
+		.
+
+.PHONY: test-with-docker
+test-with-docker: docker-build
+	docker run --rm \
+		-e COVERALLS_REPO_TOKEN=${COVERALLS_REPO_TOKEN} \
+		-e CIRCLECI=1 \
+		-e CI_BUILD_NUMBER=${BUILD_NUMBER} \
+		-e CI_BUILD_URL=${BUILD_URL} \
+		-e CI_NAME=${CI_NAME} \
+		-e CI_BRANCH=${GIT_BRANCH} \
+		-e CI_PULL_REQUEST=${CI_PULL_REQUEST} \
+		-e http_proxy="${http_proxy}" \
+		-e https_proxy="${https_proxy}" \
+		-e NO_PROXY="${NO_PROXY}" \
+		govuk/notify-paas-autoscaler:${GIT_COMMIT} \
+		make test
+
+.PHONY: build-paas-artifact
+build-paas-artifact:
+	nm -rf target
+	mkdir -p target
+	zip -y -q -r -x@deploy-exclude.lst target/notifications-paas-autoscaler.zip ./
+
+.PHONY: upload-paas-artifact
+upload-paas-artifact:
+	$(if ${DEPLOY_BUILD_NUMBER},,$(error Must specify DEPLOY_BUILD_NUMBER))
+	$(if ${JENKINS_S3_BUCKET},,$(error Must specify JENKINS_S3_BUCKET))
+	aws s3 cp --region eu-west-1 --sse AES256 target/notifications-paas-autoscaler.zip s3://${JENKINS_S3_BUCKET}/build/notifications-paas-autoscaler/${DEPLOY_BUILD_NUMBER}.zip
 
 preview:
 	@if [ -f data.yml ]; then rm data.yml; fi
@@ -71,6 +108,21 @@ cf-push: generate-config
 	cf unbind-service notify-paas-autoscaler notify-db
 	cf push -f manifest.yml
 
+
+.PHONY: cf-deploy
+cf-deploy: generate-config ## Deploys the app to Cloud Foundry
+	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
+	@cf app --guid notify-paas-autoscaler || exit 1
+	cf rename notify-paas-autoscaler notify-paas-autoscaler-rollback
+	cf push notify-paas-autoscaler -f manifest.yml
+	cf scale -i $$(cf curl /v2/apps/$$(cf app --guid notify-paas-autoscaler-rollback) | jq -r ".entity.instances" 2>/dev/null || echo "1") notify-paas-autoscaler
+	cf stop notify-paas-autoscaler-rollback
+
+	# get the new GUID, and find all crash events for that. If there were any crashes we will abort the deploy.
+	[ $$(cf curl "/v2/events?q=type:app.crash&q=actee:$$(cf app --guid notify-paas-autoscaler)" | jq ".total_results") -eq 0 ]
+	cf delete -f notify-paas-autoscaler-rollback
+
+
 .PHONY: flake8
 flake8:
 	flake8 app/ tests/ --max-line-length=120
@@ -93,3 +145,5 @@ test: flake8
 	@echo "STATSD_ENABLED: False" >> data.yml
 	@make generate-config
 	pytest -v --cov=app/ tests/
+	# run specific test with debugger
+	# pytest -s tests/test_autoscaler.py::TestScale::test_scale_paas_app_fewer_instances_recent_scale_up

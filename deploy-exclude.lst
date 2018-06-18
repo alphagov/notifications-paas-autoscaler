@@ -1,0 +1,10 @@
+*__pycache__*
+.git/*
+cache/*
+.cache/*
+target/*
+venv/*
+build/*
+.envrc
+tests/.cache/*
+.cf/*

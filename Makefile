@@ -110,7 +110,18 @@ cf-push: generate-config
 	$(if ${CF_ORG},,$(error Must specify CF_ORG))
 	cf target -s ${CF_SPACE} -o ${CF_ORG}
 	cf unbind-service notify-paas-autoscaler notify-db
-	cf push -f manifest.yml
+	cf push -f <(make -s generate-manifest)
+
+.PHONY: generate-manifest
+generate-manifest:
+	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
+
+	$(if $(shell which gpg2), $(eval export GPG=gpg2), $(eval export GPG=gpg))
+	$(if ${GPG_PASSPHRASE_TXT}, $(eval export DECRYPT_CMD=echo -n $$$${GPG_PASSPHRASE_TXT} | ${GPG} --quiet --batch --passphrase-fd 0 --pinentry-mode loopback -d), $(eval export DECRYPT_CMD=${GPG} --quiet --batch -d))
+
+	@jinja2 --strict manifest.yml.j2 \
+	    -D environment=${CF_SPACE} --format=json \
+	    <(${DECRYPT_CMD} ${NOTIFY_CREDENTIALS}/credentials/${CF_SPACE}/notify-paas-autoscaler/paas-environment.gpg) 2>&1
 
 
 .PHONY: cf-deploy
@@ -120,7 +131,7 @@ cf-deploy: generate-config ## Deploys the app to Cloud Foundry
 	cf target -s ${CF_SPACE} -o ${CF_ORG}
 	@cf app --guid notify-paas-autoscaler || exit 1
 	cf rename notify-paas-autoscaler notify-paas-autoscaler-rollback
-	cf push notify-paas-autoscaler -f manifest.yml
+	cf push notify-paas-autoscaler -f <(make -s generate-manifest)
 	cf scale -i $$(cf curl /v2/apps/$$(cf app --guid notify-paas-autoscaler-rollback) | jq -r ".entity.instances" 2>/dev/null || echo "1") notify-paas-autoscaler
 	cf stop notify-paas-autoscaler-rollback
 

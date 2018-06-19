@@ -3,7 +3,7 @@
 applications:
   - name: notify-paas-autoscaler
     buildpack: python_buildpack
-    command: ./run.sh python main.py
+    command: python main.py
     health-check-type: none
     no-route: true
     instances: 1

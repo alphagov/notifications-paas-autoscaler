@@ -4,14 +4,17 @@ import logging
 
 from cloudfoundry_client.client import CloudFoundryClient
 
+from app.config import config
+
 
 class PaasClient:
     def __init__(self):
         self.client = None
 
-        self.org = os.environ['CF_ORG']
-        self.space = os.environ['CF_SPACE']
-        self.api_url = os.environ['CF_API_URL']
+        self.org = config['GENERAL']['CF_ORG']
+        self.space = config['GENERAL']['CF_SPACE']
+        self.api_url = config['GENERAL']['CF_API_URL']
+
         self.username = os.environ['CF_USERNAME']
         self.password = os.environ['CF_PASSWORD']
 

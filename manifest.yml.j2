@@ -3,7 +3,7 @@
 applications:
   - name: notify-paas-autoscaler
     buildpack: python_buildpack
-    command: ./run.sh python main.py
+    command: python main.py
     health-check-type: none
     no-route: true
     instances: 1
@@ -11,7 +11,11 @@ applications:
     env:
       PYTHONUNBUFFERED: 1
       CONFIG_PATH: /home/vcap/app/config.yml
+      STATSD_PREFIX: {{ statsd_prefix }}
+      AWS_ACCESS_KEY_ID: {{ aws_access_key_id }}
+      AWS_SECRET_ACCESS_KEY: {{ aws_secret_access_key }}
+      CF_USERNAME: {{ cf_username }}
+      CF_PASSWORD: {{ cf_password }}
     services:
-      - notify-paas-autoscaler
       - notify-db
       - logit-ssl-syslog-drain

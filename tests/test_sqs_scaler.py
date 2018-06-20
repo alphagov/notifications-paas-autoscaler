@@ -1,5 +1,4 @@
 from unittest.mock import patch, Mock, call
-import os
 
 from app.sqs_scaler import SqsScaler
 
@@ -47,12 +46,11 @@ class TestSqsScaler:
             {'Attributes': {'ApproximateNumberOfMessages': '350'}},
         ]
 
-        with patch.dict(os.environ, {'SQS_QUEUE_PREFIX': 'production'}):
-            sqs_scaler = SqsScaler(**self.input_attrs)
-            sqs_scaler.statsd_client = Mock()
-            assert sqs_scaler.get_desired_instance_count() == 2
-            calls = [
-                call("productionqueue1.queue-length", 400),
-                call("productionqueue2.queue-length", 350),
-            ]
-            sqs_scaler.statsd_client.incr.assert_has_calls(calls)
+        sqs_scaler = SqsScaler(**self.input_attrs)
+        sqs_scaler.statsd_client = Mock()
+        assert sqs_scaler.get_desired_instance_count() == 2
+        calls = [
+            call("testqueue1.queue-length", 400),
+            call("testqueue2.queue-length", 350),
+        ]
+        sqs_scaler.statsd_client.incr.assert_has_calls(calls)

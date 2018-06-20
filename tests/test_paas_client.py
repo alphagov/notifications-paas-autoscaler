@@ -5,13 +5,17 @@ from unittest.mock import patch
 from app.paas_client import PaasClient
 
 ENV = {
-    'CF_ORG': 'notify',
-    'CF_SPACE': 'test',
-    'CF_API_URL': 'https://api.test.cf.com',
     'CF_USERNAME': 'test_username',
     'CF_PASSWORD': 'test_password',
 }
 
+CONFIG = {
+    'GENERAL': {
+        'CF_API_URL': 'https://api.test.cf.com',
+        'CF_ORG': 'notify',
+        'CF_SPACE': 'test',
+    }
+}
 
 class MockResponseObject():
 
@@ -67,7 +71,7 @@ MockOrgs = [
     ]),
 ]
 
-
+@patch.dict('app.config.config', CONFIG)
 @patch.dict('os.environ', ENV)
 @patch('app.paas_client.CloudFoundryClient')
 class TestPaasClient:

@@ -1,15 +1,15 @@
 import logging
 import math
-import os
 
 from app.base_scalers import AwsBaseScaler
+from app.config import config
 
 
 class SqsScaler(AwsBaseScaler):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.queues = kwargs['queues'] if isinstance(kwargs['queues'], list) else [kwargs['queues']]
-        self.sqs_queue_prefix = os.environ.get('SQS_QUEUE_PREFIX', '')
+        self.sqs_queue_prefix = config['SCALERS']['SQS_QUEUE_PREFIX']
         self.sqs_client = None
 
     def _init_sqs_client(self):

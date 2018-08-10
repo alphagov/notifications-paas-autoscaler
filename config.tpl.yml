@@ -32,6 +32,7 @@ APPS:
     scalers: [ElbScaler, ScheduleScaler]
     elb_name: 'notify-paas-proxy'
     schedule:
+      scale_factor: 0.5
       workdays:
         - 08:00-19:00
       weekends:

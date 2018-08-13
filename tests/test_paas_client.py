@@ -1,6 +1,6 @@
 # flake8: noqa
 
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock, PropertyMock
 
 from app.paas_client import PaasClient
 
@@ -89,6 +89,25 @@ class TestPaasClient:
 
         instances = paas_client.get_paas_apps()
         assert instances == {
+            'app7': {'name': 'app7', 'instances': 3, 'guid': 'notify-test-app7'},
+            'app8': {'name': 'app8', 'instances': 4, 'guid': 'notify-test-app8'},
+            'app9': {'name': 'app9', 'instances': 5, 'guid': 'notify-test-app9'},
+        }
+
+    def test_logged_out_paas_client(self, mock_paas_client_client, *args):
+        orgs_mock = PropertyMock(side_effect=[Exception("401  - no_token : no token provided"), MockOrgs])
+        logged_in_mock_client = mock_paas_client_client.return_value
+        type(logged_in_mock_client).organizations = orgs_mock
+        paas_client = PaasClient()
+
+        instances_first_run = paas_client.get_paas_apps()
+        assert instances_first_run == {}
+        assert paas_client.client is None
+
+        # The paas client has been reset now
+        instances_second_run = paas_client.get_paas_apps()
+        assert paas_client.client is not None
+        assert instances_second_run == {
             'app7': {'name': 'app7', 'instances': 3, 'guid': 'notify-test-app7'},
             'app8': {'name': 'app8', 'instances': 4, 'guid': 'notify-test-app8'},
             'app9': {'name': 'app9', 'instances': 5, 'guid': 'notify-test-app9'},

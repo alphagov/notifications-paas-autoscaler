@@ -65,4 +65,4 @@ class PaasClient:
         return instances
 
     def reset_cloudfoundry_client(self):
-        self.cf_client = None
+        self.client = None

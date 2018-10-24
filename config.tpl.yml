@@ -63,7 +63,7 @@ APPS:
     max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
     threshold: 250
     scalers: [SqsScaler]
-    queues:  [notify-internal-tasks, retry-tasks, job-tasks]
+    queues:  [notify-internal-tasks, retry-tasks, job-tasks, letter-tasks]
 
   - name: notify-delivery-worker-research
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
@@ -98,7 +98,7 @@ APPS:
     max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
     threshold: 8
     scalers: [SqsScaler, ScheduledJobsScaler]
-    queues:  [create-letters-pdf-tasks]
+    queues:  [create-letters-pdf-tasks, letter-tasks]
 
   - name: notify-delivery-worker-service-callbacks
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}

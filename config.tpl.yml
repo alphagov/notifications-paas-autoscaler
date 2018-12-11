@@ -28,7 +28,7 @@ APPS:
   - name: notify-api
     min_instances: {{ MIN_INSTANCE_COUNT_HIGH }}
     max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
-    threshold: 2000
+    threshold: 1000
     scalers: [ElbScaler, ScheduleScaler]
     elb_name: 'notify-paas-proxy'
     schedule:

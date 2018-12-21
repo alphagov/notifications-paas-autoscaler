@@ -90,8 +90,14 @@ APPS:
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
     max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
     threshold: 250
-    scalers: [SqsScaler]
+    scalers: [SqsScaler, ScheduleScaler]
     queues:  [ses-callbacks]
+    schedule:
+      scale_factor: 0.3
+      workdays:
+        - 08:00-19:00
+      weekends:
+        - 08:00-19:00
 
   - name: notify-template-preview
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}

@@ -44,17 +44,15 @@ notify-delivery-worker-research:
 The Autoscaler will scale the specified apps to the number of instances equal to `SCHEDULED_SCALE_FACTOR` * `max_instance_count`
 unless some other metric requires the instance to scale to a higher number (e.g. a large scheduled job)
 
-
 ## Debugging
 
 Depending on the problem you're facing you can use different approaches to get more information about it:
 
-1. You can see any events related to the autoscaler app using `cf events notify-paas-autoscaler`. This
-will show you deployments or restarts
-1. You can tail the logs with `cf logs notify-paas-autoscaler` or, if autoscaler has crashed, look into the latest logs with `cf logs notify-paas-autoscaler --latest`
+1. You can see any events related to the Autoscaler app using `cf events notify-paas-autoscaler`. This
+   will show you deployments or restarts
+1. You can tail the logs with `cf logs notify-paas-autoscaler` or, if Autoscaler has crashed, look into the latest logs with `cf logs notify-paas-autoscaler --latest`
 1. You can also log onto the box with `cf ssh notify-paas-autoscaler` and see if there are any exceptions logged in
-`/home/vcap/logs/app.log`
-
+   `/home/vcap/logs/app.log`
 
 ## Authentication credentials
 
@@ -84,10 +82,9 @@ When you change the service data you have to restage the application (or push it
 cf restage notify-paas-autoscaler
 ```
 
+## Running tests
 
-## Runnning tests
-
-### Virtualenv
+### Virtualenv
 
 ```
 mkvirtualenv -p /usr/local/bin/python3 notifications-paas-autoscaler

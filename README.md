@@ -85,7 +85,7 @@ cf restage notify-paas-autoscaler
 ```
 
 
-## Runnning tests
+## Running tests
 
 ### Virtualenv
 

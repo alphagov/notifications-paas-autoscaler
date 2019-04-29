@@ -5,7 +5,8 @@ applications:
     buildpacks:
       - python_buildpack
     health-check-type: none
-    no-route: true
+    routes:
+      - route: notify-paas-autoscaler-{{ environment }}.cloudapps.digital
     instances: 1
     memory: 128M
     env:

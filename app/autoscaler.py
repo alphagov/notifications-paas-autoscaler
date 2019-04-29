@@ -3,6 +3,8 @@ import logging
 import sched
 import time
 
+from cloudfoundry_client.errors import InvalidStatusCode
+
 from app.app import App
 from app.config import config
 from app.exceptions import CannotLoadConfig
@@ -29,7 +31,7 @@ class Autoscaler:
                 apps.append(App(**app))
             except Exception as e:
                 msg = "Could not load {}: The error was: {}".format(app, e)
-                logging.critical(msg)
+                logging.critical(msg, exc_info=True)
                 raise CannotLoadConfig(msg)
         self.autoscaler_apps = apps
 
@@ -73,9 +75,13 @@ class Autoscaler:
     def _do_scale(self, app, new_instance_count):
         try:
             self.paas_client.update(app.cf_attributes['guid'], new_instance_count)
-        except BaseException as e:
-            msg = 'Failed to scale {}: {}'.format(app.name, str(e))
-            logging.error(msg)
+        except InvalidStatusCode as e:
+            if e.body.get('error_code') == 'CF-ScaleDisabledDuringDeployment':
+                msg = 'Cannot scale during deployment {}'.format(app.name)
+                logging.info(msg)
+            else:
+                msg = 'Failed to scale {}: {}'.format(app.name, str(e))
+                logging.error(msg)
 
     def get_new_instance_count(self, current, desired, app_name):
         new_instance_count = current

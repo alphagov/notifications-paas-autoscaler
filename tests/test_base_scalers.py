@@ -1,8 +1,11 @@
 from unittest.mock import patch
+from datetime import datetime, timedelta
 import json
 import os
 
+import psycopg2
 import pytest
+from freezegun import freeze_time
 
 from app.base_scalers import BaseScaler, AwsBaseScaler, DbQueryScaler
 
@@ -82,9 +85,43 @@ class TestAwsBaseScaler:
         mock_client.assert_called_with('sts', region_name='eu-west-1')
 
 
+@pytest.fixture
+def mock_db_connection():
+    with patch('app.base_scalers.psycopg2.connect') as mock_db_connection:
+        yield mock_db_connection
+
+
+@freeze_time('2018-01-01 12:00')
 class TestDbQueryScaler:
-    def test_db_uri_is_loaded(self):
+    def setup_method(self, method):
         vcap_string = json.dumps({'postgres': [{'credentials': {'uri': 'test-db-uri'}}]})
         with patch.dict(os.environ, {'VCAP_SERVICES': vcap_string}):
-            db_query_scaler = DbQueryScaler(**INPUT_ATTRS)
-            assert db_query_scaler.db_uri == 'test-db-uri'
+            self.db_query_scaler = DbQueryScaler(**INPUT_ATTRS)
+            self.db_query_scaler.query = 'foo'
+
+    def test_db_uri_is_loaded(self):
+        assert self.db_query_scaler.db_uri == 'test-db-uri'
+
+    def test_sets_last_failure_and_returns_0_if_exception(self, mock_db_connection):
+        assert self.db_query_scaler.last_db_error == datetime.min
+
+        mock_db_connection.side_effect = psycopg2.OperationalError
+        res = self.db_query_scaler.run_query()
+
+        assert res == 0
+        assert self.db_query_scaler.last_db_error == datetime.utcnow()
+
+    def test_skips_execution_if_recently_failed(self, mock_db_connection):
+        self.db_query_scaler.last_db_error = datetime.utcnow() - timedelta(seconds=59)
+
+        res = self.db_query_scaler.run_query()
+
+        assert mock_db_connection.called is False
+        assert res == 0
+
+    def test_runs_query_if_failure_is_old(self, mock_db_connection):
+        self.db_query_scaler.last_db_error = datetime.utcnow() - timedelta(seconds=61)
+
+        self.db_query_scaler.run_query()
+
+        assert mock_db_connection.called is True

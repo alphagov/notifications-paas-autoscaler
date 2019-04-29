@@ -5,6 +5,8 @@ GIT_COMMIT ?= $(shell git rev-parse HEAD)
 SHELL := /bin/bash
 DEPLOY_BUILD_NUMBER ?= ${BUILD_NUMBER}
 
+CF_APP = notify-paas-autoscaler
+
 .PHONY: help
 help:
 	@cat $(MAKEFILE_LIST) | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -109,7 +111,7 @@ cf-push: generate-config
 	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
 	$(if ${CF_ORG},,$(error Must specify CF_ORG))
 	cf target -s ${CF_SPACE} -o ${CF_ORG}
-	cf unbind-service notify-paas-autoscaler notify-db
+	cf unbind-service ${CF_APP} notify-db
 	cf push -f <(make -s generate-manifest)
 
 .PHONY: generate-manifest
@@ -121,7 +123,7 @@ generate-manifest:
 
 	@jinja2 --strict manifest.yml.j2 \
 	    -D environment=${CF_SPACE} --format=json \
-	    <(${DECRYPT_CMD} ${NOTIFY_CREDENTIALS}/credentials/${CF_SPACE}/notify-paas-autoscaler/paas-environment.gpg) 2>&1
+	    <(${DECRYPT_CMD} ${NOTIFY_CREDENTIALS}/credentials/${CF_SPACE}/${CF_APP}/paas-environment.gpg) 2>&1
 
 
 .PHONY: cf-deploy
@@ -129,15 +131,13 @@ cf-deploy: generate-config ## Deploys the app to Cloud Foundry
 	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
 	$(if ${CF_ORG},,$(error Must specify CF_ORG))
 	cf target -s ${CF_SPACE} -o ${CF_ORG}
-	@cf app --guid notify-paas-autoscaler || exit 1
-	cf rename notify-paas-autoscaler notify-paas-autoscaler-rollback
-	cf push notify-paas-autoscaler -f <(make -s generate-manifest)
-	cf scale -i $$(cf curl /v2/apps/$$(cf app --guid notify-paas-autoscaler-rollback) | jq -r ".entity.instances" 2>/dev/null || echo "1") notify-paas-autoscaler
-	cf stop notify-paas-autoscaler-rollback
+	@cf app --guid ${CF_APP} || exit 1
 
-	# get the new GUID, and find all crash events for that. If there were any crashes we will abort the deploy.
-	[ $$(cf curl "/v2/events?q=type:app.crash&q=actee:$$(cf app --guid notify-paas-autoscaler)" | jq ".total_results") -eq 0 ]
-	cf delete -f notify-paas-autoscaler-rollback
+	# cancel any existing deploys to ensure we can apply manifest (if a deploy is in progress you'll see ScaleDisabledDuringDeployment)
+	cf v3-cancel-zdt-push ${CF_APP} || true
+
+	cf v3-apply-manifest ${CF_APP} -f <(make -s generate-manifest)
+	cf v3-zdt-push ${CF_APP} --wait-for-deploy-complete
 
 
 .PHONY: flake8

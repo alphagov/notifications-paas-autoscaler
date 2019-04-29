@@ -31,7 +31,7 @@ class Autoscaler:
                 apps.append(App(**app))
             except Exception as e:
                 msg = "Could not load {}: The error was: {}".format(app, e)
-                logging.critical(msg)
+                logging.critical(msg, exc_info=True)
                 raise CannotLoadConfig(msg)
         self.autoscaler_apps = apps
 

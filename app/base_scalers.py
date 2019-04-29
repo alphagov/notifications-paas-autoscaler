@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import logging
 import os
@@ -48,9 +48,12 @@ class AwsBaseScaler(BaseScaler):
 
 
 class DbQueryScaler(BaseScaler):
+    DB_CONNECTION_TIMEOUT = timedelta(seconds=60)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._init_db_uri()
+        self.last_db_error = datetime.min
 
     def _init_db_uri(self):
         try:
@@ -62,6 +65,9 @@ class DbQueryScaler(BaseScaler):
             self.db_uri = None
 
     def run_query(self):
+        if datetime.utcnow() - self.last_db_error < self.DB_CONNECTION_TIMEOUT:
+            return 0
+
         if self.query is None:
             msg = "No query has been defined"
             logging.critical(msg)
@@ -72,8 +78,16 @@ class DbQueryScaler(BaseScaler):
             logging.critical(msg)
             raise Exception(msg)
 
-        with psycopg2.connect(self.db_uri) as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(self.query)
-                items_count = cursor.fetchone()[0]
-                return items_count
+        try:
+            with psycopg2.connect(self.db_uri) as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(self.query)
+                    items_count = cursor.fetchone()[0]
+                    return items_count
+        except psycopg2.OperationalError:
+            # if there is exceptional load we might have run out of connections. try again in sixty seconds.
+            logging.warning('Could not connect to database', exc_info=True)
+            self.last_db_error = datetime.utcnow()
+
+            # return 0 so that autoscaler can continue to look at other metrics.
+            return 0

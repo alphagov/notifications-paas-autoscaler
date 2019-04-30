@@ -51,19 +51,33 @@ APPS:
       weekends:
         - 08:00-19:00
 
-  - name: notify-delivery-worker-database
+  - name: notify-delivery-worker-database-and-job-tasks
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
     max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
     threshold: 250
     scalers: [SqsScaler]
-    queues:  [database-tasks]
+    queues:  [database-tasks, job-tasks]
 
-  - name: notify-delivery-worker
+  - name: notify-delivery-worker-retry-tasks
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
     max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
     threshold: 250
     scalers: [SqsScaler]
-    queues:  [notify-internal-tasks, retry-tasks, job-tasks, letter-tasks]
+    queues:  [retry-tasks]
+
+  - name: notify-delivery-worker-internal
+    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
+    max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
+    threshold: 250
+    scalers: [SqsScaler]
+    queues:  [notify-internal-tasks]
+
+  - name: notify-delivery-worker-letters-tasks
+    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
+    max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
+    threshold: 250
+    scalers: [SqsScaler]
+    queues:  [create-letters-pdf-tasks, letter-tasks]
 
   - name: notify-delivery-worker-research
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}

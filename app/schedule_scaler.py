@@ -1,6 +1,8 @@
 import datetime
 import math
 
+import pytz
+
 from app.base_scalers import BaseScaler
 from app.config import config
 
@@ -22,6 +24,7 @@ class ScheduleScaler(BaseScaler):
             return False
 
         now = self._now()
+        now = pytz.utc.localize(now).astimezone(pytz.timezone("Europe/London")).replace(tzinfo=None)
         week_part = "workdays" if now.weekday() in range(5) else "weekends"  # Monday = 0, sunday = 6
 
         if week_part not in self.schedule:
@@ -29,9 +32,10 @@ class ScheduleScaler(BaseScaler):
 
         for time_range_string in self.schedule[week_part]:
             # convert the time range string to time objects
-            start, end = [datetime.datetime.strptime(i, '%H:%M').time() for i in time_range_string.split('-')]
+            start, end = [datetime.datetime.strptime(i, '%H:%M').time()
+                          for i in time_range_string.split('-')]
 
-            if datetime.datetime.combine(now, start) <= now <= datetime.datetime.combine(now, end):
+            if start <= now.time() <= end:
                 return True
 
         return False

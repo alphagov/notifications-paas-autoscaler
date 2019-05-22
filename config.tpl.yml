@@ -117,8 +117,14 @@ APPS:
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
     max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
     threshold: 8
-    scalers: [SqsScaler, ScheduledJobsScaler]
+    scalers: [SqsScaler, ScheduledJobsScaler, ScheduleScaler]
     queues:  [create-letters-pdf-tasks, letter-tasks]
+    schedule:
+      scale_factor: 0.4
+      workdays:
+        - 08:00-19:00
+      weekends:
+        - 08:00-19:00
 
   - name: notify-delivery-worker-service-callbacks
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}

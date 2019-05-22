@@ -3,14 +3,39 @@ import datetime
 
 from freezegun import freeze_time
 import pytest
+import pytz
 
 import app
 from app.schedule_scaler import ScheduleScaler
 
-WORKDAY_1420 = datetime.datetime(2018, 3, 15, 14, 20, 00)
-WORKDAY_1020 = datetime.datetime(2018, 3, 15, 10, 20, 00)
-WEEKEND_1420 = datetime.datetime(2018, 3, 17, 14, 20, 00)
-WEEKEND_1020 = datetime.datetime(2018, 3, 17, 10, 20, 00)
+LOCAL_TIMEZONE = pytz.timezone('Europe/London')
+
+# March 2018
+# 15/3 = Thursday, 17/3 = Saturday
+
+WORKDAY_1259_GMT = datetime.datetime(2018, 3, 15, 12, 59, 00)
+WORKDAY_1301_GMT = datetime.datetime(2018, 3, 15, 13, 1, 00)
+WORKDAY_1459_GMT = datetime.datetime(2018, 3, 15, 14, 59, 00)
+WORKDAY_1501_GMT = datetime.datetime(2018, 3, 15, 15, 1, 00)
+
+WEEKEND_1259_GMT = datetime.datetime(2018, 3, 17, 12, 59, 00)
+WEEKEND_1301_GMT = datetime.datetime(2018, 3, 17, 13, 1, 00)
+WEEKEND_1459_GMT = datetime.datetime(2018, 3, 17, 14, 59, 00)
+WEEKEND_1501_GMT = datetime.datetime(2018, 3, 17, 15, 1, 00)
+
+
+# June 2018
+# 15/6 = Friday, 17/6 = Sunday
+
+WORKDAY_1259_BST = datetime.datetime(2018, 6, 15, 12, 59, 00)
+WORKDAY_1301_BST = datetime.datetime(2018, 6, 15, 13, 1, 00)
+WORKDAY_1459_BST = datetime.datetime(2018, 6, 15, 14, 59, 00)
+WORKDAY_1501_BST = datetime.datetime(2018, 6, 15, 15, 1, 00)
+
+WEEKEND_1259_BST = datetime.datetime(2018, 6, 17, 12, 59, 00)
+WEEKEND_1301_BST = datetime.datetime(2018, 6, 17, 13, 1, 00)
+WEEKEND_1459_BST = datetime.datetime(2018, 6, 17, 14, 59, 00)
+WEEKEND_1501_BST = datetime.datetime(2018, 6, 17, 15, 1, 00)
 
 
 class TestScheduleScaler:
@@ -29,23 +54,64 @@ class TestScheduleScaler:
         assert schedule_scaler.scale_factor == 0.4
 
     @pytest.mark.parametrize('now,expected', [
-        (WORKDAY_1420, 3),
-        (WORKDAY_1020, 1),
-        (WEEKEND_1420, 3),
-        (WEEKEND_1020, 1),
+        (WORKDAY_1259_GMT, 1),
+        (WORKDAY_1301_GMT, 3),
+        (WORKDAY_1459_GMT, 3),
+        (WORKDAY_1501_GMT, 1),
+        (WEEKEND_1259_GMT, 1),
+        (WEEKEND_1301_GMT, 3),
+        (WEEKEND_1459_GMT, 3),
+        (WEEKEND_1501_GMT, 1),
     ], ids=[
-        "Workday in schedule",
-        "Workday off schedule",
-        "Weekend in schedule",
-        "Weekend off schedule",
+        "GMT workday just before schedule start",
+        "GMT workday just after schedule start",
+        "GMT workday just before schedule end",
+        "GMT workday just after schedule end",
+        "GMT weekend just before schedule start",
+        "GMT weekend just after schedule start",
+        "GMT weekend just before schedule end",
+        "GMT weekend just after schedule end",
     ])
-    def test_get_desired_instance_count_schedule(self, now, expected):
+    def test_get_desired_instance_count_schedule_in_gmt(self, now, expected):
         input_attrs = {
             'min_instances': 1,
             'max_instances': 5,
             'threshold': 1500,
             'schedule': {'workdays': ['13:00-15:00'], 'weekends': ['13:00-15:00'], 'scale_factor': 0.6}
         }
+        now = pytz.timezone('Europe/London').localize(now).astimezone(pytz.utc).replace(tzinfo=None)
+        with freeze_time(now):
+            schedule_scaler = ScheduleScaler(**input_attrs)
+            assert schedule_scaler.get_desired_instance_count() == expected
+
+    @pytest.mark.parametrize('now,expected', [
+        (WORKDAY_1259_BST, 1),
+        (WORKDAY_1301_BST, 3),
+        (WORKDAY_1459_BST, 3),
+        (WORKDAY_1501_BST, 1),
+        (WEEKEND_1259_BST, 1),
+        (WEEKEND_1301_BST, 3),
+        (WEEKEND_1459_BST, 3),
+        (WEEKEND_1501_BST, 1),
+    ], ids=[
+        "BST workday just before schedule start",
+        "BST workday just after schedule start",
+        "BST workday just before schedule end",
+        "BST workday just after schedule end",
+        "BST weekend just before schedule start",
+        "BST weekend just after schedule start",
+        "BST weekend just before schedule end",
+        "BST weekend just after schedule end",
+    ])
+    def test_get_desired_instance_count_schedule_in_bst(self, now, expected):
+        input_attrs = {
+            'min_instances': 1,
+            'max_instances': 5,
+            'threshold': 1500,
+            'schedule': {'workdays': ['13:00-15:00'], 'weekends': ['13:00-15:00'], 'scale_factor': 0.6}
+        }
+
+        now = pytz.timezone('Europe/London').localize(now).astimezone(pytz.utc).replace(tzinfo=None)
         with freeze_time(now):
             schedule_scaler = ScheduleScaler(**input_attrs)
             assert schedule_scaler.get_desired_instance_count() == expected

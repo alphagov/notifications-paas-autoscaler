@@ -4,3 +4,4 @@ psycopg2-binary==2.8.1
 pyyaml==5.1
 
 git+https://github.com/alphagov/notifications-utils.git@31.2.5#egg=notifications-utils==31.2.5
+pytz

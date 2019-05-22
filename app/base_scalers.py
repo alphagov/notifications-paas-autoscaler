@@ -5,6 +5,7 @@ import os
 
 import psycopg2
 import boto3
+
 from app.utils import get_statsd_client
 
 
@@ -30,7 +31,7 @@ class BaseScaler:
 
     def _now(self):
         # to make mocking in tests easier
-        return datetime.now()
+        return datetime.utcnow()
 
     def get_desired_instance_count(self):
         raise NotImplementedError

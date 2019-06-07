@@ -115,7 +115,7 @@ APPS:
 
   - name: notify-template-preview
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
-    max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
+    max_instances: {{ MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW }}
     threshold: 8
     scalers: [SqsScaler, ScheduledJobsScaler, ScheduleScaler]
     queues:  [create-letters-pdf-tasks, letter-tasks]

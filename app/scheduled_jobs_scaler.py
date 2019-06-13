@@ -21,8 +21,8 @@ class ScheduledJobsScaler(DbQueryScaler):
 
         super().__init__(**kwargs)
 
-    def get_desired_instance_count(self):
+    def _get_desired_instance_count(self):
         scheduled_items = self.run_query()
         scale_items = scheduled_items * self.scheduled_items_factor
         desired_instance_count = int(math.ceil(scale_items / float(self.threshold)))
-        return self.normalize_desired_instance_count(desired_instance_count)
+        return desired_instance_count

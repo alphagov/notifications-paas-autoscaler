@@ -16,13 +16,13 @@ class SqsScaler(AwsBaseScaler):
         if self.sqs_client is None:
             self.sqs_client = super()._get_boto3_client('sqs', region_name=self.aws_region)
 
-    def get_desired_instance_count(self):
+    def _get_desired_instance_count(self):
         logging.debug('Processing {}'.format(self.app_name))
         total_message_count = self._get_total_message_count(self.queues)
         logging.debug('Total message count: {}'.format(total_message_count))
         desired_instance_count = int(math.ceil(total_message_count / float(self.threshold)))
 
-        return self.normalize_desired_instance_count(desired_instance_count)
+        return desired_instance_count
 
     def _get_sqs_queue_name(self, name):
         return "{}{}".format(self.sqs_queue_prefix, name)

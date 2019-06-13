@@ -17,7 +17,8 @@ class BaseScaler:
         self.app_name = kwargs.get('app_name', 'missing_name')
         self.statsd_client = get_statsd_client()
 
-    def normalize_desired_instance_count(self, desired_instances):
+    def get_desired_instance_count(self):
+        desired_instances = self._get_desired_instance_count()
         desired_instances = max(desired_instances, self.min_instances)
         desired_instances = min(desired_instances, self.max_instances)
 
@@ -33,7 +34,7 @@ class BaseScaler:
         # to make mocking in tests easier
         return datetime.utcnow()
 
-    def get_desired_instance_count(self):
+    def _get_desired_instance_count(self):
         raise NotImplementedError
 
 

@@ -16,7 +16,7 @@ class ElbScaler(AwsBaseScaler):
         if self.cloudwatch_client is None:
             self.cloudwatch_client = super()._get_boto3_client('cloudwatch', region_name=self.aws_region)
 
-    def get_desired_instance_count(self):
+    def _get_desired_instance_count(self):
         logging.debug('Processing {}'.format(self.app_name))
         request_counts = self._get_request_counts()
         if len(request_counts) == 0:
@@ -29,7 +29,7 @@ class ElbScaler(AwsBaseScaler):
 
         self.gauge("{}.request-count".format(self.app_name), highest_request_count)
         desired_instance_count = int(math.ceil(highest_request_count / float(self.threshold)))
-        return self.normalize_desired_instance_count(desired_instance_count)
+        return desired_instance_count
 
     def _get_request_counts(self):
         self._init_cloudwatch_client()

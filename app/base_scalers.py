@@ -10,11 +10,10 @@ from app.utils import get_statsd_client
 
 
 class BaseScaler:
-    def __init__(self, min_instances, max_instances, threshold, **kwargs):
+    def __init__(self, app_name, min_instances, max_instances):
+        self.app_name = app_name
         self.min_instances = min_instances
         self.max_instances = max_instances
-        self.threshold = threshold
-        self.app_name = kwargs.get('app_name', 'missing_name')
         self.statsd_client = get_statsd_client()
 
     def get_desired_instance_count(self):
@@ -39,8 +38,8 @@ class BaseScaler:
 
 
 class AwsBaseScaler(BaseScaler):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, app_name, min_instances, max_instances, **kwargs):
+        super().__init__(app_name, min_instances, max_instances)
 
         self.aws_region = kwargs.get('aws_region') or os.environ.get('AWS_REGION', 'eu-west-1')
         self.aws_account_id = self._get_boto3_client('sts', region_name=self.aws_region).get_caller_identity()['Account']  # noqa
@@ -52,8 +51,8 @@ class AwsBaseScaler(BaseScaler):
 class DbQueryScaler(BaseScaler):
     DB_CONNECTION_TIMEOUT = timedelta(seconds=60)
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, app_name, min_instances, max_instances, **kwargs):
+        super().__init__(app_name, min_instances, max_instances)
         self._init_db_uri()
         self.last_db_error = datetime.min
 

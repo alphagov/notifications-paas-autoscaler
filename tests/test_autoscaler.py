@@ -181,12 +181,15 @@ class TestAutoscalerAlmostEndToEnd:
         app_name = 'test-api-app'
         app_config = {
             'name': app_name,
-            'scalers': ['ElbScaler', 'ScheduleScaler'],
-            'elb_name': 'my-elb',
             'min_instances': 5,
             'max_instances': 10,
-            'threshold': 300,
-            'schedule': '''
+            'scalers': [{
+              'type': 'ElbScaler',
+              'elb_name': 'my-elb',
+              'threshold': 300
+            }, {
+              'type': 'ScheduleScaler',
+              'schedule': '''
 ---
 workdays:
   - 08:00-19:00
@@ -194,6 +197,7 @@ weekends:
   - 09:00-17:00
 scale_factor: 0.8
 '''
+            }]
         }
 
         mocker.patch.object(AwsBaseScaler, '_get_boto3_client')
@@ -209,7 +213,7 @@ scale_factor: 0.8
 
         with freeze_time("Thursday 31 May 2018 06:00:00") as frozen_time:
             # to trigger a scale up we need at least one value greater than min_instances * threshold
-            app_config['schedule'] = yaml.safe_load(app_config['schedule'])
+            app_config['scalers'][1]['schedule'] = yaml.safe_load(app_config['scalers'][1]['schedule'])
             app = App(**app_config)
 
             autoscaler = Autoscaler()

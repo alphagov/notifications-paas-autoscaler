@@ -5,29 +5,32 @@ from freezegun import freeze_time
 
 from app.elb_scaler import ElbScaler
 
+app_name = 'test-app'
+min_instances = 1
+max_instances = 2
+
 
 @patch('app.base_scalers.boto3')
 class TestElbScaler:
     input_attrs = {
-        'min_instances': 1,
-        'max_instances': 2,
         'threshold': 1500,
         'elb_name': 'notify-paas-proxy',
         'request_count_time_range': {'minutes': 10},
     }
 
     def test_init_assigns_relevant_values(self, mock_boto3):
-        elb_scaler = ElbScaler(**self.input_attrs)
+        elb_scaler = ElbScaler(app_name, min_instances, max_instances, **self.input_attrs)
 
-        assert elb_scaler.min_instances == self.input_attrs['min_instances']
-        assert elb_scaler.max_instances == self.input_attrs['max_instances']
+        assert elb_scaler.app_name == app_name
+        assert elb_scaler.min_instances == min_instances
+        assert elb_scaler.max_instances == max_instances
         assert elb_scaler.threshold == self.input_attrs['threshold']
         assert elb_scaler.elb_name == self.input_attrs['elb_name']
         assert elb_scaler.request_count_time_range == self.input_attrs['request_count_time_range']
 
     def test_cloudwatch_client_initialization(self, mock_boto3):
         mock_client = mock_boto3.client
-        elb_scaler = ElbScaler(**self.input_attrs)
+        elb_scaler = ElbScaler(app_name, min_instances, max_instances, **self.input_attrs)
         elb_scaler.statsd_client = Mock()
 
         assert elb_scaler.cloudwatch_client is None
@@ -49,7 +52,7 @@ class TestElbScaler:
                 {'Sum': 2100, 'Timestamp': 111111114},
             ]}
 
-        elb_scaler = ElbScaler(**self.input_attrs)
+        elb_scaler = ElbScaler(app_name, min_instances, max_instances, **self.input_attrs)
         elb_scaler.statsd_client = Mock()
 
         assert elb_scaler.get_desired_instance_count() == 2

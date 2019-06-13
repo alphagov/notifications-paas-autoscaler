@@ -6,9 +6,10 @@ from app.base_scalers import AwsBaseScaler
 
 
 class ElbScaler(AwsBaseScaler):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, app_name, min_instances, max_instances, **kwargs):
+        super().__init__(app_name, min_instances, max_instances, **kwargs)
         self.elb_name = kwargs['elb_name']
+        self.threshold = kwargs['threshold']
         self.request_count_time_range = kwargs.get('request_count_time_range', {'minutes': 5})
         self.cloudwatch_client = None
 

@@ -8,8 +8,8 @@ from app.config import config
 
 
 class ScheduleScaler(BaseScaler):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, app_name, min_instances, max_instances, **kwargs):
+        super().__init__(app_name, min_instances, max_instances)
         self.schedule = kwargs['schedule']
         self.scale_factor = self.schedule.get('scale_factor') or config['SCALERS']['DEFAULT_SCHEDULE_SCALE_FACTOR']
 

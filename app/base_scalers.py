@@ -38,10 +38,10 @@ class BaseScaler:
 
 
 class AwsBaseScaler(BaseScaler):
-    def __init__(self, app_name, min_instances, max_instances, **kwargs):
+    def __init__(self, app_name, min_instances, max_instances, aws_region=None):
         super().__init__(app_name, min_instances, max_instances)
 
-        self.aws_region = kwargs.get('aws_region') or os.environ.get('AWS_REGION', 'eu-west-1')
+        self.aws_region = aws_region or os.environ.get('AWS_REGION', 'eu-west-1')
         self.aws_account_id = self._get_boto3_client('sts', region_name=self.aws_region).get_caller_identity()['Account']  # noqa
 
     def _get_boto3_client(self, client, **kwargs):
@@ -51,7 +51,7 @@ class AwsBaseScaler(BaseScaler):
 class DbQueryScaler(BaseScaler):
     DB_CONNECTION_TIMEOUT = timedelta(seconds=60)
 
-    def __init__(self, app_name, min_instances, max_instances, **kwargs):
+    def __init__(self, app_name, min_instances, max_instances):
         super().__init__(app_name, min_instances, max_instances)
         self._init_db_uri()
         self.last_db_error = datetime.min

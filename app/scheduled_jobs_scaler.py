@@ -9,7 +9,7 @@ class ScheduledJobsScaler(DbQueryScaler):
     scheduled_items_factor = 0.3
 
     def __init__(self, app_name, min_instances, max_instances, **kwargs):
-        super().__init__(app_name, min_instances, max_instances, **kwargs)
+        super().__init__(app_name, min_instances, max_instances)
         # Use coalesce to avoid null values when nothing is scheduled
         # https://stackoverflow.com/a/6530371/1477072
         query = """

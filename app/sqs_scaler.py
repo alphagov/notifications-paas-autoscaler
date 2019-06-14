@@ -7,7 +7,7 @@ from app.config import config
 
 class SqsScaler(AwsBaseScaler):
     def __init__(self, app_name, min_instances, max_instances, **kwargs):
-        super().__init__(app_name, min_instances, max_instances, **kwargs)
+        super().__init__(app_name, min_instances, max_instances, kwargs.get('aws_region'))
         self.threshold = kwargs['threshold']
         self.queues = kwargs['queues'] if isinstance(kwargs['queues'], list) else [kwargs['queues']]
         self.sqs_queue_prefix = config['SCALERS']['SQS_QUEUE_PREFIX']

@@ -37,20 +37,21 @@ WEEKEND_1301_BST = datetime.datetime(2018, 6, 17, 13, 1, 00)
 WEEKEND_1459_BST = datetime.datetime(2018, 6, 17, 14, 59, 00)
 WEEKEND_1501_BST = datetime.datetime(2018, 6, 17, 15, 1, 00)
 
+app_name = 'test-app'
+min_instances = 1
+max_instances = 5
+
 
 class TestScheduleScaler:
     def test_init_assigns_basic_values(self):
         input_attrs = {
-            'min_instances': 1,
-            'max_instances': 2,
-            'threshold': 1500,
             'schedule': {'workdays': ['08:00-10:00'], 'scale_factor': 0.4}
         }
-        schedule_scaler = ScheduleScaler(**input_attrs)
+        schedule_scaler = ScheduleScaler(app_name, min_instances, max_instances, **input_attrs)
 
-        assert schedule_scaler.min_instances == input_attrs['min_instances']
-        assert schedule_scaler.max_instances == input_attrs['max_instances']
-        assert schedule_scaler.threshold == input_attrs['threshold']
+        assert schedule_scaler.app_name == app_name
+        assert schedule_scaler.min_instances == min_instances
+        assert schedule_scaler.max_instances == max_instances
         assert schedule_scaler.scale_factor == 0.4
 
     @pytest.mark.parametrize('now,expected', [
@@ -74,14 +75,11 @@ class TestScheduleScaler:
     ])
     def test_get_desired_instance_count_schedule_in_gmt(self, now, expected):
         input_attrs = {
-            'min_instances': 1,
-            'max_instances': 5,
-            'threshold': 1500,
             'schedule': {'workdays': ['13:00-15:00'], 'weekends': ['13:00-15:00'], 'scale_factor': 0.6}
         }
         now = pytz.timezone('Europe/London').localize(now).astimezone(pytz.utc).replace(tzinfo=None)
         with freeze_time(now):
-            schedule_scaler = ScheduleScaler(**input_attrs)
+            schedule_scaler = ScheduleScaler(app_name, min_instances, max_instances, **input_attrs)
             assert schedule_scaler.get_desired_instance_count() == expected
 
     @pytest.mark.parametrize('now,expected', [
@@ -105,15 +103,12 @@ class TestScheduleScaler:
     ])
     def test_get_desired_instance_count_schedule_in_bst(self, now, expected):
         input_attrs = {
-            'min_instances': 1,
-            'max_instances': 5,
-            'threshold': 1500,
             'schedule': {'workdays': ['13:00-15:00'], 'weekends': ['13:00-15:00'], 'scale_factor': 0.6}
         }
 
         now = pytz.timezone('Europe/London').localize(now).astimezone(pytz.utc).replace(tzinfo=None)
         with freeze_time(now):
-            schedule_scaler = ScheduleScaler(**input_attrs)
+            schedule_scaler = ScheduleScaler(app_name, min_instances, max_instances, **input_attrs)
             assert schedule_scaler.get_desired_instance_count() == expected
 
     @pytest.mark.parametrize('enabled,expected', [
@@ -125,12 +120,9 @@ class TestScheduleScaler:
     ])
     def test_disabled_schedule(self, enabled, expected):
         input_attrs = {
-            'min_instances': 1,
-            'max_instances': 5,
-            'threshold': 1500,
             'schedule': {'workdays': ['00:00-23:59'], 'weekends': ['00:00-23:59'], 'scale_factor': 0.6}
         }
 
-        schedule_scaler = ScheduleScaler(**input_attrs)
+        schedule_scaler = ScheduleScaler(app_name, min_instances, max_instances, **input_attrs)
         with patch.dict(app.config.config, {'SCALERS': {'SCHEDULE_SCALER_ENABLED': enabled}}):
             assert schedule_scaler.get_desired_instance_count() == expected

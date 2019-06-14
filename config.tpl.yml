@@ -28,114 +28,137 @@ APPS:
   - name: notify-api
     min_instances: {{ MIN_INSTANCE_COUNT_HIGH }}
     max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
-    threshold: 800
-    scalers: [ElbScaler, ScheduleScaler]
-    elb_name: 'notify-paas-proxy'
-    schedule:
-      scale_factor: 0.6
-      workdays:
-        - 08:00-19:00
-      weekends:
-        - 09:00-17:00
+    scalers:
+      - type: ElbScaler
+        elb_name: 'notify-paas-proxy'
+        threshold: 800
+      - type: ScheduleScaler
+        schedule:
+          scale_factor: 0.6
+          workdays:
+            - 08:00-19:00
+          weekends:
+            - 09:00-17:00
 
   - name: notify-delivery-worker-sender
     min_instances: {{ MIN_INSTANCE_COUNT_HIGH }}
     max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
-    threshold: 600
-    scalers: [SqsScaler, ScheduleScaler, ScheduledJobsScaler]
-    queues: [send-sms-tasks, send-email-tasks]
-    schedule:
-      scale_factor: 0.4
-      workdays:
-        - 08:00-19:00
-      weekends:
-        - 08:00-19:00
+    scalers:
+      - type: ScheduledJobsScaler
+        threshold: 600
+      - type: SqsScaler
+        queues: [send-sms-tasks, send-email-tasks]
+        threshold: 600
+      - type: ScheduleScaler
+        schedule:
+          scale_factor: 0.4
+          workdays:
+            - 08:00-19:00
+          weekends:
+            - 08:00-19:00
 
   - name: notify-delivery-worker-jobs
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
     max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
-    threshold: 250
-    scalers: [SqsScaler]
-    queues:  [database-tasks, job-tasks]
+    scalers:
+      - type: SqsScaler
+        queues:  [database-tasks, job-tasks]
+        threshold: 250
 
   - name: notify-delivery-worker-retry-tasks
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
     max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
-    threshold: 250
-    scalers: [SqsScaler]
-    queues:  [retry-tasks]
+    scalers:
+      - type: SqsScaler
+        queues:  [retry-tasks]
+        threshold: 250
 
   - name: notify-delivery-worker-internal
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
     max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
-    threshold: 250
-    scalers: [SqsScaler]
-    queues:  [notify-internal-tasks]
+    scalers:
+      - type: SqsScaler
+        queues:  [notify-internal-tasks]
+        threshold: 250
 
   - name: notify-delivery-worker-letters
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
     max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
-    threshold: 250
-    scalers: [SqsScaler]
-    queues:  [create-letters-pdf-tasks, letter-tasks]
+    scalers:
+      - type: SqsScaler
+        queues:  [create-letters-pdf-tasks, letter-tasks]
+        threshold: 250
 
   - name: notify-delivery-worker-research
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
     max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
-    threshold: 250
-    scalers: [SqsScaler]
-    queues:  [research-mode-tasks]
+    scalers:
+      - type: SqsScaler
+        queues:  [research-mode-tasks]
+        threshold: 250
 
   - name: notify-delivery-worker-priority
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
     max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
-    threshold: 250
-    scalers: [SqsScaler]
-    queues:  [priority-tasks]
+    scalers:
+      - type: SqsScaler
+        queues:  [priority-tasks]
+        threshold: 250
 
   - name: notify-delivery-worker-periodic
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
     max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
-    threshold: 250
-    scalers: [SqsScaler]
-    queues:  [periodic-tasks, statistics-tasks]
+    scalers:
+      - type: SqsScaler
+        queues:  [periodic-tasks, statistics-tasks]
+        threshold: 250
 
   - name: notify-delivery-worker-receipts
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
     max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
-    threshold: 250
-    scalers: [SqsScaler, ScheduleScaler]
-    queues:  [ses-callbacks]
-    schedule:
-      scale_factor: 0.3
-      workdays:
-        - 08:00-19:00
-      weekends:
-        - 08:00-19:00
+    scalers:
+      - type: SqsScaler
+        queues:  [ses-callbacks]
+        threshold: 250
+      - type: ScheduleScaler
+        schedule:
+          scale_factor: 0.3
+          workdays:
+            - 08:00-19:00
+          weekends:
+            - 08:00-19:00
 
   - name: notify-template-preview
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
     max_instances: {{ MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW }}
-    threshold: 8
-    scalers: [SqsScaler, ScheduledJobsScaler, ScheduleScaler]
-    queues:  [create-letters-pdf-tasks, letter-tasks]
-    schedule:
-      scale_factor: 0.4
-      workdays:
-        - 08:00-19:00
-      weekends:
-        - 08:00-19:00
+    scalers:
+      - type: ScheduledJobsScaler
+        threshold: 8
+      - type: SqsScaler
+        queues:  [create-letters-pdf-tasks, letter-tasks]
+        threshold: 8
+      - type: ScheduleScaler
+        schedule:
+          scale_factor: 0.4
+          workdays:
+            - 08:00-19:00
+          weekends:
+            - 08:00-19:00
 
   - name: notify-delivery-worker-service-callbacks
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
     max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
-    threshold: 500
-    scalers: [SqsScaler, ScheduledJobsScaler]
-    queues:  [service-callbacks]
+    scalers:
+      - type: ScheduledJobsScaler
+        threshold: 8
+      - type: SqsScaler
+        queues:  [service-callbacks]
+        threshold: 500
 
   - name: notify-antivirus
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
     max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
-    threshold: 50
-    scalers: [SqsScaler]
-    queues:  [antivirus-tasks]
+    scalers:
+      - type: SqsScaler
+        queues:  [antivirus-tasks]
+        threshold: 50

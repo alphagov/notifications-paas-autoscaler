@@ -2,14 +2,12 @@ import app
 
 
 class App:
-    def __init__(self, name, scalers, **scaler_details):
+    def __init__(self, name, min_instances, max_instances, scalers):
         self.name = name
-        self.scaler_details = scaler_details
-        self.scaler_details['app_name'] = name
         self.scalers = []
         for scaler in scalers:
-            scaler_cls = getattr(app, scaler)
-            self.scalers.append(scaler_cls(**self.scaler_details))
+            scaler_cls = getattr(app, scaler['type'])
+            self.scalers.append(scaler_cls(name, min_instances, max_instances, **scaler))
 
     def query_scalers(self):
         desired_instance_counts = []

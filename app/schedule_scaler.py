@@ -8,16 +8,16 @@ from app.config import config
 
 
 class ScheduleScaler(BaseScaler):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, app_name, min_instances, max_instances, **kwargs):
+        super().__init__(app_name, min_instances, max_instances)
         self.schedule = kwargs['schedule']
         self.scale_factor = self.schedule.get('scale_factor') or config['SCALERS']['DEFAULT_SCHEDULE_SCALE_FACTOR']
 
-    def get_desired_instance_count(self):
+    def _get_desired_instance_count(self):
         if not self._should_scale_on_schedule():
             return self.min_instances
 
-        return self.normalize_desired_instance_count(int(math.ceil(self.max_instances * self.scale_factor)))
+        return int(math.ceil(self.max_instances * self.scale_factor))
 
     def _should_scale_on_schedule(self):
         if not config['SCALERS']['SCHEDULE_SCALER_ENABLED']:

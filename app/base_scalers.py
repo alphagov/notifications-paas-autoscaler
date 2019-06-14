@@ -7,6 +7,7 @@ import psycopg2
 import boto3
 
 from app.utils import get_statsd_client
+from app.paas_client import PaasClient
 
 
 class BaseScaler:
@@ -46,6 +47,12 @@ class AwsBaseScaler(BaseScaler):
 
     def _get_boto3_client(self, client, **kwargs):
         return boto3.client(client, **kwargs)
+
+
+class PaasBaseScaler(BaseScaler):
+    def __init__(self, app_name, min_instances, max_instances):
+        super().__init__(app_name, min_instances, max_instances)
+        self.paas_client = PaasClient()
 
 
 class DbQueryScaler(BaseScaler):

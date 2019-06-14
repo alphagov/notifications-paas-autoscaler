@@ -64,5 +64,11 @@ class PaasClient:
 
         return instances
 
+    def get_app_stats(self, app_name):
+        client = self.get_cloudfoundry_client()
+        if client is not None:
+            app = client.v2.apps.get_first(**{'name': app_name})
+            return app['entity']['stats']
+
     def reset_cloudfoundry_client(self):
         self.client = None

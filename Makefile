@@ -26,6 +26,7 @@ generate-config:
 	@echo "COOLDOWN_SECONDS_AFTER_SCALE_UP: 300" >> data.yml
 	@echo "COOLDOWN_SECONDS_AFTER_SCALE_DOWN: 60" >> data.yml
 	@echo "DEFAULT_SCHEDULE_SCALE_FACTOR: 0.6" >> data.yml
+	@echo "DEFAULT_CPU_PERCENTAGE_THRESHOLD: 60" >> data.yml
 	@jinja2 --strict --format=yml config.tpl.yml data.yml > config.yml
 
 .PHONY: docker-build

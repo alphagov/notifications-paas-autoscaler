@@ -130,13 +130,13 @@ APPS:
             - 08:00-19:00
 
   - name: notify-template-preview
-    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
+    min_instances: {{ MIN_INSTANCE_COUNT_HIGH }}
     max_instances: {{ MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW }}
     scalers:
       - type: ScheduledJobsScaler
         threshold: 8
       - type: SqsScaler
-        queues:  [create-letters-pdf-tasks, letter-tasks]
+        queues:  [create-letters-pdf-tasks, letter-tasks, retry-tasks]
         threshold: 8
       - type: ScheduleScaler
         schedule:

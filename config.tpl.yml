@@ -130,7 +130,7 @@ APPS:
             - 08:00-19:00
 
   - name: notify-template-preview
-    min_instances: {{ MIN_INSTANCE_COUNT_HIGH }}
+    min_instances: {{ MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW }}
     max_instances: {{ MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW }}
     scalers:
       - type: ScheduledJobsScaler

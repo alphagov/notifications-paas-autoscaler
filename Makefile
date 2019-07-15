@@ -102,7 +102,7 @@ production:
 	@if [ -f data.yml ]; then rm data.yml; fi
 	@echo "---" >> data.yml
 	@echo "CF_SPACE: production" >> data.yml
-	@echo "MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW: 4" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW: 8" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW: 40" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_HIGH: 20" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_LOW: 5" >> data.yml

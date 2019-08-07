@@ -12,7 +12,7 @@ applications:
     env:
       PYTHONUNBUFFERED: 1
       CONFIG_PATH: /home/vcap/app/config.yml
-      STATSD_PREFIX: {{ statsd_prefix }}
+      STATSD_HOST: notify-statsd-exporter-{{ environment }}.apps.internal
       AWS_ACCESS_KEY_ID: {{ aws_access_key_id }}
       AWS_SECRET_ACCESS_KEY: {{ aws_secret_access_key }}
       CF_USERNAME: {{ cf_username }}

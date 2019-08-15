@@ -111,7 +111,15 @@ APPS:
     max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
     scalers:
       - type: SqsScaler
-        queues:  [periodic-tasks, statistics-tasks]
+        queues:  [periodic-tasks]
+        threshold: 250
+
+  - name: notify-delivery-worker-reporting
+    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
+    max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
+    scalers:
+      - type: SqsScaler
+        queues:  [reporting-tasks]
         threshold: 250
 
   - name: notify-delivery-worker-receipts

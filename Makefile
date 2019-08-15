@@ -154,7 +154,6 @@ flake8:
 .PHONY: test
 test: flake8
 	@$(eval export CONFIG_PATH=$(shell pwd)/config.yml)
-	@$(eval export STATSD_PREFIX=test)
 	@$(eval export CF_SPACE=test)
 	@if [ -f data.yml ]; then rm data.yml; fi
 	@echo "---" >> data.yml

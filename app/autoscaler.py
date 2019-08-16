@@ -4,6 +4,7 @@ import sched
 import time
 
 from cloudfoundry_client.errors import InvalidStatusCode
+import redis
 
 from app.app import App
 from app.config import config
@@ -22,6 +23,7 @@ class Autoscaler:
         self.cooldown_seconds_after_scale_down = config['GENERAL']['COOLDOWN_SECONDS_AFTER_SCALE_DOWN']
         self.statsd_client = get_statsd_client()
         self.paas_client = PaasClient()
+        self.redis_client = redis.Redis.from_url(config['GENERAL']['REDIS_URL'])
         self._load_autoscaler_apps()
 
     def _load_autoscaler_apps(self):
@@ -88,20 +90,21 @@ class Autoscaler:
 
         # scale down
         if desired < current:
-            if self._recent_scale(app_name, self.last_scale_up, self.cooldown_seconds_after_scale_up):
+
+            if self._recent_scale(app_name, 'last_scale_up', self.cooldown_seconds_after_scale_up):
                 logging.info("Skipping scale down due to recent scale up event")
                 return current
 
-            if self._recent_scale(app_name, self.last_scale_down, self.cooldown_seconds_after_scale_down):
+            if self._recent_scale(app_name, 'last_scale_down', self.cooldown_seconds_after_scale_down):
                 logging.info("Skipping scale down due to a recent scale down event")
                 return current
 
-            self.last_scale_down[app_name] = self._now()
+            self.redis.hset('last_scale_down', app_name, self._now())
             new_instance_count = current - 1
 
         # scale up
         elif desired > current:
-            self.last_scale_up[app_name] = self._now()
+            self.redis.hset('last_scale_up', app_name, self._now())
             new_instance_count = desired
 
         return new_instance_count
@@ -118,10 +121,11 @@ class Autoscaler:
 
         self.statsd_client.gauge("{}.instance-count".format(app_name), new_instance_count)
 
-    def _recent_scale(self, app_name, last_scale, timeout):
-        # if we redeployed the app and we lost the last scale time
+    def _recent_scale(self, app_name, redis_key, timeout):
+        # if we redeployed autoscaler and we lost the last scale time
         now = self._now()
-        if not last_scale.get(app_name):
-            last_scale[app_name] = now
+        last_scale = self.redis.hget(redis_key, app_name)
+        if not last_scale:
+            self.redis.hset(redis_key, app_name, now)
 
-        return now < (last_scale[app_name] + timeout)
+        return now < (last_scale + timeout)

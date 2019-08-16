@@ -7,7 +7,7 @@ applications:
     health-check-type: none
     routes:
       - route: notify-paas-autoscaler-{{ environment }}.cloudapps.digital
-    instances: 1
+    instances: 2
     memory: 128M
     env:
       PYTHONUNBUFFERED: 1

@@ -125,7 +125,14 @@ class Autoscaler:
     def _recent_scale(self, app_name, redis_key, timeout):
         # if we redeployed autoscaler and we lost the last scale time
         now = self._now()
-        last_scale = self.redis_client.hget(redis_key, app_name)
+
+        try:
+            last_scale = self.redis_client.hget(redis_key, app_name)
+        except Exception as e:
+            logging.warning("Could not retrieve data from redis for {}. Error was \
+                    {}".format(app_name, e))
+            last_scale = None
+
         if not last_scale:
             last_scale = now
             self._set_last_scale(redis_key, app_name, last_scale)
@@ -135,4 +142,8 @@ class Autoscaler:
         return now < (last_scale + timeout)
 
     def _set_last_scale(self, key, app_name, timestamp):
-        self.redis_client.hset(key, app_name, timestamp)
+        try:
+            self.redis_client.hset(key, app_name, timestamp)
+        except Exception as e:
+            logging.warning("Could not set {} for {}. Error was \
+                    {}".format(key, app_name, e))

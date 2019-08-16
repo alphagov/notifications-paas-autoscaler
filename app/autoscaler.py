@@ -1,10 +1,11 @@
 import datetime
 import logging
+import os
 import sched
 import time
 
 from cloudfoundry_client.errors import InvalidStatusCode
-import redis
+from redis import Redis
 
 from app.app import App
 from app.config import config
@@ -23,7 +24,7 @@ class Autoscaler:
         self.cooldown_seconds_after_scale_down = config['GENERAL']['COOLDOWN_SECONDS_AFTER_SCALE_DOWN']
         self.statsd_client = get_statsd_client()
         self.paas_client = PaasClient()
-        self.redis_client = redis.Redis.from_url(config['GENERAL']['REDIS_URL'])
+        self.redis_client = Redis.from_url(os.environ['REDIS_URL'])
         self._load_autoscaler_apps()
 
     def _load_autoscaler_apps(self):
@@ -99,12 +100,12 @@ class Autoscaler:
                 logging.info("Skipping scale down due to a recent scale down event")
                 return current
 
-            self.redis.hset('last_scale_down', app_name, self._now())
+            self._set_last_scale('last_scale_down', app_name, self._now())
             new_instance_count = current - 1
 
         # scale up
         elif desired > current:
-            self.redis.hset('last_scale_up', app_name, self._now())
+            self._set_last_scale('last_scale_up', app_name, self._now())
             new_instance_count = desired
 
         return new_instance_count
@@ -124,8 +125,14 @@ class Autoscaler:
     def _recent_scale(self, app_name, redis_key, timeout):
         # if we redeployed autoscaler and we lost the last scale time
         now = self._now()
-        last_scale = self.redis.hget(redis_key, app_name)
+        last_scale = self.redis_client.hget(redis_key, app_name)
         if not last_scale:
-            self.redis.hset(redis_key, app_name, now)
+            last_scale = now
+            self._set_last_scale(redis_key, app_name, last_scale)
+        else:
+            last_scale = float(last_scale)
 
         return now < (last_scale + timeout)
+
+    def _set_last_scale(self, key, app_name, timestamp):
+        self.redis_client.hset(key, app_name, timestamp)

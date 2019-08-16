@@ -169,6 +169,6 @@ test: flake8
 	@echo "SQS_QUEUE_PREFIX: test" >> data.yml
 	@echo "STATSD_ENABLED: False" >> data.yml
 	@make generate-config
-	STATSD_HOST=testing.local pytest -v --cov=app/ tests/
+	STATSD_HOST=testing.local REDIS_URL=redis://redis.local pytest -v --cov=app/ tests/
 	# run specific test with debugger
-	# pytest -s tests/test_autoscaler.py::TestScale::test_scale_paas_app_fewer_instances_recent_scale_up
+	# STATSD_HOST=testing.local REDIS_URL=redis://redis.local pytest -s tests/test_autoscaler.py::TestScale::test_scale_paas_app_handles_deployments

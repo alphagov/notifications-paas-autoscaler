@@ -27,9 +27,6 @@ class BaseScaler:
     def gauge(self, metric_name, metric_value):
         self.statsd_client.gauge(metric_name, metric_value)
 
-    def incr(self, metric_name, metric_value):
-        self.statsd_client.incr(metric_name, metric_value)
-
     def _now(self):
         # to make mocking in tests easier
         return datetime.utcnow()

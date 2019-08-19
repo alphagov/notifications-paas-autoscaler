@@ -2,6 +2,7 @@ boto3==1.9.134
 cloudfoundry-client==1.4.0
 psycopg2-binary==2.8.1
 pyyaml==5.1
+redis==3.3.7
 
 git+https://github.com/alphagov/notifications-utils.git@33.2.9#egg=notifications-utils==33.2.9
 pytz

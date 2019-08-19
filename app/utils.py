@@ -14,7 +14,6 @@ class _StatsdWrapper():
             'NOTIFY_APP_NAME': 'autoscaler',
             'STATSD_HOST': os.environ['STATSD_HOST'],
             'STATSD_PORT': 8125,
-            'STATSD_PREFIX': os.environ.get('STATSD_PREFIX', '')
         })
         self.statsd_client = StatsdClient()
         self.statsd_client.init_app(self)

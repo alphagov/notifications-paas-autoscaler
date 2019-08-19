@@ -2,9 +2,10 @@ import datetime
 import logging
 from unittest.mock import patch, Mock
 
-import yaml
-from freezegun import freeze_time
 from cloudfoundry_client.errors import InvalidStatusCode
+from freezegun import freeze_time
+import fakeredis
+import yaml
 
 from app.autoscaler import Autoscaler
 from app.base_scalers import AwsBaseScaler
@@ -17,6 +18,7 @@ SCALEDOWN_COOLDOWN_SECONDS = 60
 
 @freeze_time("2018-05-31 06:00:00")
 @patch.object(Autoscaler, '_load_autoscaler_apps')
+@patch('app.autoscaler.Redis', fakeredis.FakeRedis)
 @patch('app.autoscaler.PaasClient')
 @patch('app.autoscaler.get_statsd_client')
 class TestScale:
@@ -51,7 +53,7 @@ class TestScale:
 
         autoscaler = Autoscaler()
         autoscaler.scale(app)
-        assert autoscaler.last_scale_up[app_name] == self._now()
+        assert float(autoscaler.redis_client.hget('last_scale_up', app_name)) == self._now()
         mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 6)
         mock_paas_client.return_value.update.assert_called_once_with(app_guid, 6)
 
@@ -68,10 +70,10 @@ class TestScale:
         autoscaler.cooldown_seconds_after_scale_down = SCALEDOWN_COOLDOWN_SECONDS
 
         # we scaled down 600 seconds ago, scaled up 325 seconds ago
-        autoscaler.last_scale_down[app_name] = self._now() - SCALEDOWN_COOLDOWN_SECONDS * 10
-        autoscaler.last_scale_up[app_name] = self._now() - (SCALEUP_COOLDOWN_SECONDS + 25)
+        autoscaler._set_last_scale('last_scale_down', app_name, (self._now() - SCALEDOWN_COOLDOWN_SECONDS * 10))
+        autoscaler._set_last_scale('last_scale_up', app_name, (self._now() - (SCALEUP_COOLDOWN_SECONDS + 25)))
         autoscaler.scale(app)
-        assert autoscaler.last_scale_down[app_name] == self._now()
+        assert float(autoscaler.redis_client.hget('last_scale_down', app_name)) == self._now()
         mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 3)
         mock_paas_client.return_value.update.assert_called_once_with(app_guid, 3)
 
@@ -88,8 +90,8 @@ class TestScale:
         autoscaler.cooldown_seconds_after_scale_down = SCALEDOWN_COOLDOWN_SECONDS
 
         # we scaled down 600 seconds ago, scaled up 100 seconds ago
-        autoscaler.last_scale_down[app_name] = self._now() - SCALEDOWN_COOLDOWN_SECONDS * 10
-        autoscaler.last_scale_up[app_name] = self._now() - 100
+        autoscaler._set_last_scale('last_scale_down', app_name, (self._now() - SCALEDOWN_COOLDOWN_SECONDS * 10))
+        autoscaler._set_last_scale('last_scale_up', app_name, (self._now() - 100))
         autoscaler.scale(app)
         mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 4)
         mock_paas_client.return_value.update.assert_not_called()
@@ -106,8 +108,8 @@ class TestScale:
         autoscaler.cooldown_seconds_after_scale_down = SCALEDOWN_COOLDOWN_SECONDS
 
         # we scaled up 600 seconds ago, scaled down 30 seconds ago
-        autoscaler.last_scale_down[app_name] = self._now() - 30
-        autoscaler.last_scale_up[app_name] = self._now() - 600
+        autoscaler._set_last_scale('last_scale_down', app_name, (self._now() - 30))
+        autoscaler._set_last_scale('last_scale_up', app_name, (self._now() - 600))
 
         autoscaler.scale(app)
         mock_get_statsd_client.return_value.gauge.assert_called_once_with("{}.instance-count".format(app_name), 4)
@@ -205,6 +207,7 @@ scale_factor: 0.8
         mocker.patch.object(ElbScaler, 'gauge')
         mocker.patch.object(ElbScaler, '_get_request_counts', return_value=[1300, 1500, 1600, 1700, 1700])
         mock_paas_client = mocker.patch('app.autoscaler.PaasClient')
+        mocker.patch('app.autoscaler.Redis', fakeredis.FakeRedis)
         mock_get_statsd_client = mocker.patch('app.autoscaler.get_statsd_client')
 
         mock_paas_client.return_value.get_paas_apps.return_value = {

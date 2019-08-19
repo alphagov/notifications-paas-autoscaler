@@ -56,4 +56,4 @@ class TestSqsScaler:
             call("testqueue1.queue-length", 400),
             call("testqueue2.queue-length", 350),
         ]
-        sqs_scaler.statsd_client.incr.assert_has_calls(calls)
+        sqs_scaler.statsd_client.gauge.assert_has_calls(calls)

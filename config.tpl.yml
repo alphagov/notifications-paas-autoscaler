@@ -67,7 +67,7 @@ APPS:
         threshold: 250
 
   - name: notify-delivery-worker-retry-tasks
-    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
+    min_instances: {{ MAX_INSTANCE_COUNT_LOW }}
     max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
     scalers:
       - type: SqsScaler

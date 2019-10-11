@@ -27,8 +27,8 @@ SCALERS:
 
 APPS:
   - name: notify-api
-    min_instances: {{ MIN_INSTANCE_COUNT_HIGH }}
-    max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
+    min_instances: {{ MIN_INSTANCE_COUNT_API }}
+    max_instances: {{ MAX_INSTANCE_COUNT_API }}
     scalers:
       - type: ElbScaler
         elb_name: 'notify-paas-proxy'

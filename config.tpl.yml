@@ -156,7 +156,7 @@ APPS:
 
   - name: notify-delivery-worker-service-callbacks
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
-    max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
+    max_instances: {{ MAX_INSTANCE_COUNT_CALLBACK }}
     scalers:
       - type: ScheduledJobsScaler
         threshold: 8

@@ -42,7 +42,7 @@ notify-delivery-worker-research:
 ```
 
 The Autoscaler will scale the specified apps to the number of instances equal to `SCHEDULED_SCALE_FACTOR` * `max_instance_count`
-unless some other metric requires the instance to scale to a higher number (e.g. a large scheduled job)
+unless some other metric requires the instance to scale to a higher number (e.g. a large scheduled job).
 
 ## Debugging
 

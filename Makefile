@@ -97,13 +97,6 @@ production:
 	@echo "STATSD_ENABLED: True" >> data.yml
 	@$(eval export CF_SPACE=production)
 
-cf-push: generate-config
-	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
-	$(if ${CF_ORG},,$(error Must specify CF_ORG))
-	cf target -s ${CF_SPACE} -o ${CF_ORG}
-	cf unbind-service ${CF_APP} notify-db
-	cf push -f <(make -s generate-manifest)
-
 .PHONY: generate-manifest
 generate-manifest:
 	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))

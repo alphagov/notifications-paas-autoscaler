@@ -1,7 +1,6 @@
 .DEFAULT_GOAL := help
 
 CF_ORG ?= govuk-notify
-GIT_COMMIT ?= $(shell git rev-parse HEAD)
 SHELL := /bin/bash
 DEPLOY_BUILD_NUMBER ?= ${BUILD_NUMBER}
 
@@ -28,31 +27,6 @@ generate-config:
 	@echo "DEFAULT_SCHEDULE_SCALE_FACTOR: 0.6" >> data.yml
 	@echo "DEFAULT_CPU_PERCENTAGE_THRESHOLD: 60" >> data.yml
 	@jinja2 --strict --format=yml config.tpl.yml data.yml > config.yml
-
-.PHONY: docker-build
-docker-build:
-	docker build --pull \
-		--build-arg HTTP_PROXY="${HTTP_PROXY}" \
-		--build-arg HTTPS_PROXY="${HTTP_PROXY}" \
-		--build-arg NO_PROXY="${NO_PROXY}" \
-		-t govuk/notify-paas-autoscaler:${GIT_COMMIT} \
-		.
-
-.PHONY: test-with-docker
-test-with-docker: docker-build
-	docker run --rm \
-		-e COVERALLS_REPO_TOKEN=${COVERALLS_REPO_TOKEN} \
-		-e CIRCLECI=1 \
-		-e CI_BUILD_NUMBER=${BUILD_NUMBER} \
-		-e CI_BUILD_URL=${BUILD_URL} \
-		-e CI_NAME=${CI_NAME} \
-		-e CI_BRANCH=${GIT_BRANCH} \
-		-e CI_PULL_REQUEST=${CI_PULL_REQUEST} \
-		-e http_proxy="${http_proxy}" \
-		-e https_proxy="${https_proxy}" \
-		-e NO_PROXY="${NO_PROXY}" \
-		govuk/notify-paas-autoscaler:${GIT_COMMIT} \
-		make test
 
 .PHONY: build-paas-artifact
 build-paas-artifact:

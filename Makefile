@@ -2,7 +2,6 @@
 
 CF_ORG ?= govuk-notify
 SHELL := /bin/bash
-DEPLOY_BUILD_NUMBER ?= ${BUILD_NUMBER}
 
 CF_APP = notify-paas-autoscaler
 
@@ -27,18 +26,6 @@ generate-config:
 	@echo "DEFAULT_SCHEDULE_SCALE_FACTOR: 0.6" >> data.yml
 	@echo "DEFAULT_CPU_PERCENTAGE_THRESHOLD: 60" >> data.yml
 	@jinja2 --strict --format=yml config.tpl.yml data.yml > config.yml
-
-.PHONY: build-paas-artifact
-build-paas-artifact:
-	rm -rf target
-	mkdir -p target
-	zip -y -q -r -x@deploy-exclude.lst target/notifications-paas-autoscaler.zip ./
-
-.PHONY: upload-paas-artifact
-upload-paas-artifact:
-	$(if ${DEPLOY_BUILD_NUMBER},,$(error Must specify DEPLOY_BUILD_NUMBER))
-	$(if ${JENKINS_S3_BUCKET},,$(error Must specify JENKINS_S3_BUCKET))
-	aws s3 cp --region eu-west-1 --sse AES256 target/notifications-paas-autoscaler.zip s3://${JENKINS_S3_BUCKET}/build/notifications-paas-autoscaler/${DEPLOY_BUILD_NUMBER}.zip
 
 preview:
 	@if [ -f data.yml ]; then rm data.yml; fi

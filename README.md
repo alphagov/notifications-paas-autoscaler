@@ -6,13 +6,16 @@ Runs every `SCHEDULE_INTERVAL_SECONDS` (currently 5 seconds) interval, checks so
 
 ## Installation
 
-You need Ruby installed to generate the manifest template.
+```
+mkvirtualenv -p /usr/local/bin/python3 notifications-paas-autoscaler
+pip install -r requirements.txt
+```
+
+## Running tests
 
 ```
-make <env> cf-push
+make test
 ```
-
-Where env can be preview, staging or production.
 
 ## Scheduled scaling
 
@@ -80,12 +83,4 @@ When you change the service data you have to restage the application (or push it
 
 ```
 cf restage notify-paas-autoscaler
-```
-
-## Running tests
-
-### Virtualenv
-
-```
-mkvirtualenv -p /usr/local/bin/python3 notifications-paas-autoscaler
 ```

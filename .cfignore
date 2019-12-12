@@ -7,6 +7,6 @@ README.md
 __pycache__
 config.tpl.yml
 data.yml
-dev_requirements.txt
+requirements_for_test.txt
 tests
 venv

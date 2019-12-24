@@ -9,15 +9,9 @@ CF_APP = notify-paas-autoscaler
 help:
 	@cat $(MAKEFILE_LIST) | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-.PHONY: venv
-venv: venv/bin/activate ## Create virtualenv if it does not exist
-
-venv/bin/activate:
-	test -d venv || virtualenv venv -p python3
-
 .PHONY: dependencies
-dependencies: venv ## Install build dependencies
-	. venv/bin/activate && pip3 install -r requirements.txt
+dependencies: ## Install build dependencies
+	pip install -r requirements.txt
 
 generate-config:
 	@$(if ${CF_SPACE},,$(error Must specify CF_SPACE))

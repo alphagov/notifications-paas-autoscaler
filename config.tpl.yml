@@ -154,6 +154,14 @@ APPS:
           weekends:
             - 08:00-19:00
 
+  - name: notify-template-preview-celery
+    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
+    max_instances: {{ MAX_INSTANCE_COUNT_MEDIUM }}
+    scalers:
+      - type: SqsScaler
+        queues:  [antivirus-tasks, letter-tasks, sanitise-letter-tasks]
+        threshold: 100
+
   - name: notify-delivery-worker-service-callbacks
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
     max_instances: {{ MAX_INSTANCE_COUNT_CALLBACK }}

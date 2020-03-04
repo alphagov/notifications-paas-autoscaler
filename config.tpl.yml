@@ -156,7 +156,7 @@ APPS:
 
   - name: notify-template-preview-celery
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
-    max_instances: {{ MAX_INSTANCE_COUNT_MEDIUM }}
+    max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
     scalers:
       - type: SqsScaler
         queues:  [antivirus-tasks, letter-tasks, sanitise-letter-tasks]

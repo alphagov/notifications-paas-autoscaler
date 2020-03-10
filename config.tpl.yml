@@ -155,7 +155,7 @@ APPS:
             - 08:00-19:00
 
   - name: notify-template-preview-celery
-    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
+    min_instances: {{ MIN_INSTANCE_COUNT_HIGH }}
     max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
     scalers:
       - type: SqsScaler

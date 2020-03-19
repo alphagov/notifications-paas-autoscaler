@@ -127,7 +127,7 @@ APPS:
     max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
     scalers:
       - type: SqsScaler
-        queues:  [ses-callbacks]
+        queues:  [ses-callbacks,sms-callbacks]
         threshold: 250
       - type: ScheduleScaler
         schedule:

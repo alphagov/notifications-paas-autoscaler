@@ -32,7 +32,7 @@ APPS:
     scalers:
       - type: ElbScaler
         elb_name: 'notify-paas-proxy'
-        threshold: 800
+        threshold: 600
       - type: ScheduleScaler
         schedule:
           scale_factor: 0.6

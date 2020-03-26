@@ -172,6 +172,21 @@ APPS:
         queues:  [service-callbacks]
         threshold: 500
 
+  - name: notify-delivery-worker-save-api-notifications
+    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
+    max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
+    scalers:
+      - type: SqsScaler
+        queues:  [save-api-email-tasks]
+        threshold: 250
+      - type: ScheduleScaler
+        schedule:
+          scale_factor: 0.3
+          workdays:
+            - 08:00-19:00
+          weekends:
+            - 08:00-19:00
+
   - name: notify-antivirus
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
     max_instances: {{ MAX_INSTANCE_COUNT_LOW }}

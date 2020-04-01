@@ -186,12 +186,12 @@ class TestAutoscalerAlmostEndToEnd:
             'min_instances': 5,
             'max_instances': 10,
             'scalers': [{
-              'type': 'ElbScaler',
-              'elb_name': 'my-elb',
-              'threshold': 300
+                'type': 'ElbScaler',
+                'elb_name': 'my-elb',
+                'threshold': 300
             }, {
-              'type': 'ScheduleScaler',
-              'schedule': '''
+                'type': 'ScheduleScaler',
+                'schedule': '''
 ---
 workdays:
   - 08:00-19:00
@@ -206,6 +206,7 @@ scale_factor: 0.8
         mocker.patch.object(ElbScaler, '_get_boto3_client')
         mocker.patch.object(ElbScaler, 'gauge')
         mocker.patch.object(ElbScaler, '_get_request_counts', return_value=[1300, 1500, 1600, 1700, 1700])
+        mocker.patch.object(ElbScaler, '_get_surge_queue_length', return_value=0)
         mock_paas_client = mocker.patch('app.autoscaler.PaasClient')
         mocker.patch('app.autoscaler.Redis', fakeredis.FakeRedis)
         mock_get_statsd_client = mocker.patch('app.autoscaler.get_statsd_client')

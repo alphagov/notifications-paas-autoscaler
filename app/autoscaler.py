@@ -53,10 +53,10 @@ class Autoscaler:
         self.scheduler.enterabs(run_at, 1, self.run_task)
 
     def run(self):
-        print('API endpoint:   {}'.format(self.paas_client.api_url))
-        print('User:           {}'.format(self.paas_client.username))
-        print('Org:            {}'.format(self.paas_client.org))
-        print('Space:          {}'.format(self.paas_client.space))
+        logging.info('API endpoint:   {}'.format(self.paas_client.api_url))
+        logging.info('User:           {}'.format(self.paas_client.username))
+        logging.info('Org:            {}'.format(self.paas_client.org))
+        logging.info('Space:          {}'.format(self.paas_client.space))
 
         self._schedule()
         while True:

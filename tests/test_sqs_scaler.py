@@ -24,7 +24,8 @@ class TestSqsScaler:
         assert sqs_scaler.app_name == app_name
         assert sqs_scaler.min_instances == min_instances
         assert sqs_scaler.max_instances == max_instances
-        assert sqs_scaler.threshold == self.input_attrs['threshold']
+        assert sqs_scaler.queue_length_threshold == self.input_attrs['threshold']
+        assert sqs_scaler.throughput_threshold == 1000
         assert sqs_scaler.queues == self.input_attrs['queues']
 
     def test_init_assigns_relevant_values_non_list_queue(self, mock_boto3):
@@ -88,9 +89,9 @@ class TestSqsScaler:
 
         sqs_scaler = SqsScaler(app_name, min_instances, max_instances, **self.input_attrs)
 
-        _get_throughput_mock = mocker.patch.object(sqs_scaler, '_get_throughput', side_effect=[200, 400])
+        _get_throughput_mock = mocker.patch.object(sqs_scaler, '_get_throughput', side_effect=[2000, 800])
 
-        # threshold is 250
+        # threshold is 1000
         assert sqs_scaler._get_desired_instance_count_based_on_queue_throughput() == 3
 
         assert _get_throughput_mock.call_args_list == [

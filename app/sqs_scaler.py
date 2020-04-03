@@ -5,11 +5,16 @@ from datetime import timedelta
 from app.base_scalers import AwsBaseScaler
 from app.config import config
 
+# calculated by looking at log output of a single instance of delivery-worker-save-api-notifications on production
+# during high load
+THROUGHPUT_OF_TASKS_PER_WORKER_PER_MINUTE = 1000
+
 
 class SqsScaler(AwsBaseScaler):
     def __init__(self, app_name, min_instances, max_instances, **kwargs):
         super().__init__(app_name, min_instances, max_instances, kwargs.get('aws_region'))
-        self.threshold = kwargs['threshold']
+        self.queue_length_threshold = kwargs['threshold']
+        self.throughput_threshold = THROUGHPUT_OF_TASKS_PER_WORKER_PER_MINUTE
         self.queues = kwargs['queues'] if isinstance(kwargs['queues'], list) else [kwargs['queues']]
         self.sqs_queue_prefix = config['SCALERS']['SQS_QUEUE_PREFIX']
         self.request_count_time_range = kwargs.get('request_count_time_range', {'minutes': 5})
@@ -36,13 +41,13 @@ class SqsScaler(AwsBaseScaler):
     def _get_desired_instance_count_based_on_current_queue_length(self):
         total_message_count = self._get_total_message_count(self.queues)
         logging.debug('Total message count: {}'.format(total_message_count))
-        desired_instance_count = int(math.ceil(total_message_count / float(self.threshold)))
+        desired_instance_count = int(math.ceil(total_message_count / float(self.queue_length_threshold)))
         return desired_instance_count
 
     def _get_desired_instance_count_based_on_queue_throughput(self):
         total_throughput = self._get_total_throughput(self.queues)
         logging.debug('Total throughput: {}'.format(total_throughput))
-        desired_instance_count = int(math.ceil(total_throughput / float(self.threshold)))
+        desired_instance_count = int(math.ceil(total_throughput / float(self.throughput_threshold)))
         return desired_instance_count
 
     def _get_sqs_queue_name(self, name):

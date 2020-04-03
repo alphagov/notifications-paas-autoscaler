@@ -4,7 +4,7 @@ import sys
 from app.autoscaler import Autoscaler
 
 logging.basicConfig(
-    level=logging.WARNING,
+    level=logging.DEBUG,
     handlers=[
         logging.FileHandler('/home/vcap/logs/app.log'),
         logging.StreamHandler(sys.stdout),

@@ -20,4 +20,4 @@ class CpuScaler(PaasBaseScaler):
 
     def _get_cpu_percentages(self):
         paas_app = self.paas_client.get_app_stats(self.app_name)
-        return (instance['stats']['usage']['cpu']*100 for instance in paas_app.values())
+        return (instance['stats']['usage']['cpu'] * 100 for instance in paas_app.values())

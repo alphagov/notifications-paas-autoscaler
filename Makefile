@@ -13,6 +13,12 @@ help:
 dependencies: ## Install build dependencies
 	pip install -r requirements.txt
 
+
+.PHONY: test-dependencies
+test-dependencies: ## Install build test-dependencies
+	pip install -r requirements_for_test.txt
+
+
 generate-config:
 	@$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
 	@echo "COOLDOWN_SECONDS_AFTER_SCALE_UP: 300" >> data.yml
@@ -109,7 +115,7 @@ flake8:
 	flake8 app/ tests/ --max-line-length=120
 
 .PHONY: test
-test: flake8
+test: test-dependencies flake8
 	@$(eval export CONFIG_PATH=$(shell pwd)/config.yml)
 	@$(eval export CF_SPACE=test)
 	@if [ -f data.yml ]; then rm data.yml; fi
@@ -129,6 +135,6 @@ test: flake8
 	@echo "SQS_QUEUE_PREFIX: test" >> data.yml
 	@echo "STATSD_ENABLED: False" >> data.yml
 	@make generate-config
-	STATSD_HOST=testing.local REDIS_URL=redis://redis.local pytest -v --cov=app/ tests/
+	STATSD_HOST=testing.local REDIS_URL=redis://redis.local pytest -v tests/
 	# run specific test with debugger
 	# STATSD_HOST=testing.local REDIS_URL=redis://redis.local pytest -s tests/test_autoscaler.py::TestScale::test_scale_paas_app_handles_deployments

@@ -107,7 +107,7 @@ class TestSqsScaler:
 
         assert sqs_scaler._get_throughput('my-queue') == 200
         # queue prefix "test" pulled from SQS_QUEUE_PREFIX env var
-        statsd_mock.gauge.assert_called_once_with('testmy-queue.queue-throughput', 200)
+        statsd_mock.gauge.assert_called_once_with('testmy-queue.queue-throughput', 50)
         _get_sqs_throughput_mock.assert_called_once_with('testmy-queue')
 
     def test_get_throughput_returns_0_if_no_data(self, mock_boto3, mocker):

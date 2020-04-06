@@ -96,6 +96,7 @@ class SqsScaler(AwsBaseScaler):
             Unit='Count'
         )
         datapoints = result['Datapoints']
+        datapoints = sorted(datapoints, key=lambda x: x['Timestamp'])
         return [row['Sum'] for row in datapoints]
 
     def _get_throughput(self, queue):
@@ -110,7 +111,7 @@ class SqsScaler(AwsBaseScaler):
         highest_throughput = max(past_5_mins_of_throughput)
         logging.debug('Highest queue throughput: {}'.format(highest_throughput))
 
-        self.gauge("{}.queue-throughput".format(queue_name), highest_throughput)
+        self.gauge("{}.queue-throughput".format(queue_name), past_5_mins_of_throughput[-1])
         return highest_throughput
 
     def _get_total_throughput(self, queues):

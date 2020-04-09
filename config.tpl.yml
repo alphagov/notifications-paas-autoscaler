@@ -123,8 +123,8 @@ APPS:
         threshold: 250
 
   - name: notify-delivery-worker-receipts
-    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
-    max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
+    min_instances: {{ MIN_INSTANCE_COUNT_RECEIPTS }}
+    max_instances: {{ MAX_INSTANCE_COUNT_RECEIPTS }}
     scalers:
       - type: SqsScaler
         queues:  [ses-callbacks,sms-callbacks]

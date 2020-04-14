@@ -42,8 +42,8 @@ APPS:
             - 09:00-17:00
 
   - name: notify-delivery-worker-sender
-    min_instances: {{ MIN_INSTANCE_COUNT_HIGH }}
-    max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
+    min_instances: {{ MIN_INSTANCE_COUNT_SENDER }}
+    max_instances: {{ MAX_INSTANCE_COUNT_SENDER }}
     scalers:
       - type: ScheduledJobsScaler
         threshold: 600

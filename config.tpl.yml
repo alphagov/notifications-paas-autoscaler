@@ -37,9 +37,9 @@ APPS:
         schedule:
           scale_factor: 0.6
           workdays:
-            - 08:00-19:00
+            - 08:00-23:00
           weekends:
-            - 09:00-17:00
+            - 08:00-23:00
 
   - name: notify-delivery-worker-sender
     min_instances: {{ MIN_INSTANCE_COUNT_SENDER }}
@@ -54,9 +54,9 @@ APPS:
         schedule:
           scale_factor: 0.4
           workdays:
-            - 08:00-19:00
+            - 08:00-23:00
           weekends:
-            - 08:00-19:00
+            - 08:00-23:00
 
   - name: notify-delivery-worker-jobs
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
@@ -133,9 +133,9 @@ APPS:
         schedule:
           scale_factor: 0.3
           workdays:
-            - 08:00-19:00
+            - 08:00-23:00
           weekends:
-            - 08:00-19:00
+            - 08:00-23:00
 
   - name: notify-template-preview
     min_instances: {{ MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW }}
@@ -183,9 +183,9 @@ APPS:
         schedule:
           scale_factor: 0.3
           workdays:
-            - 08:00-19:00
+            - 08:00-23:00
           weekends:
-            - 08:00-19:00
+            - 08:00-23:00
 
   - name: notify-antivirus
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}

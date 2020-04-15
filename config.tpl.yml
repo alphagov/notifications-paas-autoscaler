@@ -173,8 +173,8 @@ APPS:
         threshold: 500
 
   - name: notify-delivery-worker-save-api-notifications
-    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
-    max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
+    min_instances: {{ MIN_INSTANCE_COUNT_SAVE_API_NOTIFICATIONS }}
+    max_instances: {{ MAX_INSTANCE_COUNT_SAVE_API_NOTIFICATIONS }}
     scalers:
       - type: SqsScaler
         queues:  [save-api-email-tasks]

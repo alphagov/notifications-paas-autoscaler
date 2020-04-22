@@ -51,4 +51,4 @@ class TestCpuScaler:
 
 # Create a dictionary that matches the schema of CF `stats` endpoint
 def _get_app_stats(cpus):
-    return {str(idx): {'stats': {'usage': {'cpu': cpu/100}}} for idx, cpu in enumerate(cpus)}
+    return {str(idx): {'stats': {'usage': {'cpu': cpu / 100}}} for idx, cpu in enumerate(cpus)}

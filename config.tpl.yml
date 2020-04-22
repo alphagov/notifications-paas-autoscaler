@@ -160,7 +160,8 @@ APPS:
     scalers:
       - type: SqsScaler
         queues:  [antivirus-tasks, letter-tasks, sanitise-letter-tasks]
-        threshold: 100
+        tasks_per_worker_per_minute: 25
+        allowed_queue_backlog_per_worker: 25
 
   - name: notify-delivery-worker-service-callbacks
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}

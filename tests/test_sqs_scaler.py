@@ -34,6 +34,23 @@ class TestSqsScaler:
 
         assert sqs_scaler.queues == ['queue1']
 
+    def test_init_sets_throughput_threshold_from_tasks_per_worker_per_minute_if_provided(self, mock_boto3):
+        sqs_scaler = SqsScaler(app_name, min_instances, max_instances, **{
+            'threshold': 100,
+            'tasks_per_worker_per_minute': 5,
+            'queues': []
+        })
+        assert sqs_scaler.queue_length_threshold == 100
+        assert sqs_scaler.throughput_threshold == 5
+
+    def test_init_sets_queue_threshold_from_allowed_queue_backlog_per_worker_if_threshold_not_set(self, mock_boto3):
+        sqs_scaler = SqsScaler(app_name, min_instances, max_instances, **{
+            'allowed_queue_backlog_per_worker': 5,
+            'queues': []
+        })
+        assert sqs_scaler.queue_length_threshold == 5
+        assert sqs_scaler.throughput_threshold == 1000
+
     def test_client_initialization(self, mock_boto3):
         self.input_attrs['queues'] = ['queue1', 'queue2']
         mock_client = mock_boto3.client

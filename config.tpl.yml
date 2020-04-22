@@ -159,7 +159,7 @@ APPS:
     max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
     scalers:
       - type: SqsScaler
-        queues:  [antivirus-tasks, letter-tasks, sanitise-letter-tasks]
+        queues:  [sanitise-letter-tasks]
         tasks_per_worker_per_minute: 25
         allowed_queue_backlog_per_worker: 25
 

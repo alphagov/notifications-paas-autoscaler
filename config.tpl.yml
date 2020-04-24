@@ -144,8 +144,10 @@ APPS:
       - type: ScheduledJobsScaler
         threshold: 8
       - type: SqsScaler
-        queues:  [create-letters-pdf-tasks, letter-tasks, retry-tasks]
-        threshold: 8
+        queues:  [create-letters-pdf-tasks]
+        # 5 gunicorn workers per * 60 seconds * pessimistic 1 second per request avg = 300 requests per minute
+        tasks_per_worker_per_minute: 300
+        allowed_queue_backlog_per_worker: 100
       - type: ScheduleScaler
         schedule:
           scale_factor: 0.4
@@ -159,8 +161,9 @@ APPS:
     max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
     scalers:
       - type: SqsScaler
-        queues:  [antivirus-tasks, letter-tasks, sanitise-letter-tasks]
-        threshold: 100
+        queues:  [sanitise-letter-tasks]
+        tasks_per_worker_per_minute: 25
+        allowed_queue_backlog_per_worker: 25
 
   - name: notify-delivery-worker-service-callbacks
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}

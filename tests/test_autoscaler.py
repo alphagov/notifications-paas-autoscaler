@@ -186,12 +186,12 @@ class TestAutoscalerAlmostEndToEnd:
             'min_instances': 5,
             'max_instances': 10,
             'scalers': [{
-              'type': 'ElbScaler',
-              'elb_name': 'my-elb',
-              'threshold': 300
+                'type': 'ElbScaler',
+                'elb_name': 'my-elb',
+                'threshold': 300
             }, {
-              'type': 'ScheduleScaler',
-              'schedule': '''
+                'type': 'ScheduleScaler',
+                'schedule': '''
 ---
 workdays:
   - 08:00-19:00

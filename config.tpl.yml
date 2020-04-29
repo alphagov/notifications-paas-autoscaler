@@ -115,12 +115,16 @@ APPS:
         threshold: 250
 
   - name: notify-delivery-worker-reporting
-    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
-    max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
+    min_instances: {{ MIN_INSTANCE_COUNT_REPORTING }}
+    max_instances: {{ MAX_INSTANCE_COUNT_REPORTING }}
     scalers:
-      - type: SqsScaler
-        queues:  [reporting-tasks]
-        threshold: 250
+      - type: ScheduleScaler
+        schedule:
+          scale_factor: 1
+          workdays:
+            - 00:00-04:00
+          weekends:
+            - 00:00-04:00
 
   - name: notify-delivery-worker-receipts
     min_instances: {{ MIN_INSTANCE_COUNT_RECEIPTS }}

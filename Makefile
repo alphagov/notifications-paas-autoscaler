@@ -27,6 +27,8 @@ preview:
 	@echo "CF_SPACE: preview" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW: 1" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW: 2" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW_CELERY: 1" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW_CELERY: 2" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_RECEIPTS: 1" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_RECEIPTS: 2" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_SENDER: 1" >> data.yml
@@ -54,6 +56,8 @@ staging:
 	@echo "CF_SPACE: staging" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW: 4" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW: 20" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW_CELERY: 4" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW_CELERY: 20" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_RECEIPTS: 4" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_RECEIPTS: 20" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_SENDER: 4" >> data.yml
@@ -81,6 +85,8 @@ production:
 	@echo "CF_SPACE: production" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW: 8" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW: 40" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW_CELERY: 4" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW_CELERY: 35" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_RECEIPTS: 4" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_RECEIPTS: 25" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_SENDER: 18" >> data.yml
@@ -141,6 +147,8 @@ test: flake8
 	@echo "CF_SPACE: test" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW: 4" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW: 20" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW_CELERY: 4" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW_CELERY: 20" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_RECEIPTS: 4" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_RECEIPTS: 20" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_SENDER: 4" >> data.yml

@@ -54,8 +54,8 @@ staging:
 	@if [ -f data.yml ]; then rm data.yml; fi
 	@echo "---" >> data.yml
 	@echo "CF_SPACE: staging" >> data.yml
-	@echo "MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW: 4" >> data.yml
-	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW: 20" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW: 2" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW: 4" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW_CELERY: 4" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW_CELERY: 20" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_RECEIPTS: 4" >> data.yml
@@ -83,8 +83,8 @@ production:
 	@if [ -f data.yml ]; then rm data.yml; fi
 	@echo "---" >> data.yml
 	@echo "CF_SPACE: production" >> data.yml
-	@echo "MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW: 8" >> data.yml
-	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW: 40" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW: 2" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW: 4" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW_CELERY: 4" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW_CELERY: 35" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_RECEIPTS: 4" >> data.yml

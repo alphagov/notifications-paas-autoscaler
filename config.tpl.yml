@@ -145,16 +145,10 @@ APPS:
     min_instances: {{ MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW }}
     max_instances: {{ MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW }}
     scalers:
-      - type: ScheduledJobsScaler
-        threshold: 8
-      - type: SqsScaler
-        queues:  [create-letters-pdf-tasks]
-        # 5 gunicorn workers per * 60 seconds * pessimistic 1 second per request avg = 300 requests per minute
-        tasks_per_worker_per_minute: 300
-        allowed_queue_backlog_per_worker: 100
       - type: ScheduleScaler
         schedule:
-          scale_factor: 0.4
+          {# stick to MAX_INSTANCE_COUNT in daytime, MIN_INSTANCE_COUNT overnight #}
+          scale_factor: 1
           workdays:
             - 08:00-19:00
           weekends:

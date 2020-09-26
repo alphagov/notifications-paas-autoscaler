@@ -59,8 +59,8 @@ APPS:
             - 08:00-23:00
 
   - name: notify-delivery-worker-jobs
-    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
-    max_instances: {{ MAX_INSTANCE_COUNT_HIGH }}
+    min_instances: {{ MIN_INSTANCE_COUNT_JOBS }}
+    max_instances: {{ MAX_INSTANCE_COUNT_JOBS }}
     scalers:
       - type: SqsScaler
         queues:  [database-tasks, job-tasks]

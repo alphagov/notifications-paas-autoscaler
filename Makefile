@@ -37,6 +37,8 @@ preview:
 	@echo "MAX_INSTANCE_COUNT_SAVE_API_NOTIFICATIONS: 2" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_REPORTING: 1" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_REPORTING: 2" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_JOBS: 1" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_JOBS: 2" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_API: 2" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_API: 1" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_HIGH: 2" >> data.yml
@@ -66,6 +68,8 @@ staging:
 	@echo "MAX_INSTANCE_COUNT_SAVE_API_NOTIFICATIONS: 25" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_REPORTING: 1" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_REPORTING: 2" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_JOBS: 1" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_JOBS: 2" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_API: 25" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_API: 4" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_HIGH: 20" >> data.yml
@@ -95,6 +99,8 @@ production:
 	@echo "MAX_INSTANCE_COUNT_SAVE_API_NOTIFICATIONS: 25" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_REPORTING: 1" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_REPORTING: 3" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_JOBS: 25" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_JOBS: 25" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_API: 35" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_API: 35" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_HIGH: 20" >> data.yml
@@ -157,6 +163,8 @@ test: flake8
 	@echo "MAX_INSTANCE_COUNT_SAVE_API_NOTIFICATIONS: 25" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_REPORTING: 1" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_REPORTING: 2" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_JOBS: 1" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_JOBS: 2" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_API: 25" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_API: 4" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_HIGH: 20" >> data.yml

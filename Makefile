@@ -33,6 +33,10 @@ preview:
 	@echo "MAX_INSTANCE_COUNT_RECEIPTS: 2" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_SENDER: 1" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_SENDER: 2" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_SENDER_SMS: 1" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_SENDER_SMS: 2" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_SENDER_EMAIL: 1" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_SENDER_EMAIL: 2" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_SAVE_API_NOTIFICATIONS: 1" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_SAVE_API_NOTIFICATIONS: 2" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_REPORTING: 1" >> data.yml
@@ -64,6 +68,10 @@ staging:
 	@echo "MAX_INSTANCE_COUNT_RECEIPTS: 20" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_SENDER: 4" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_SENDER: 20" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_SENDER_SMS: 4" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_SENDER_SMS: 10" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_SENDER_EMAIL: 4" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_SENDER_EMAIL: 15" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_SAVE_API_NOTIFICATIONS: 4" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_SAVE_API_NOTIFICATIONS: 25" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_REPORTING: 1" >> data.yml
@@ -95,6 +103,10 @@ production:
 	@echo "MAX_INSTANCE_COUNT_RECEIPTS: 30" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_SENDER: 18" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_SENDER: 30" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_SENDER_SMS: 10" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_SENDER_SMS: 15" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_SENDER_EMAIL: 15" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_SENDER_EMAIL: 25" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_SAVE_API_NOTIFICATIONS: 18" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_SAVE_API_NOTIFICATIONS: 25" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_REPORTING: 1" >> data.yml
@@ -159,6 +171,10 @@ test: flake8
 	@echo "MAX_INSTANCE_COUNT_RECEIPTS: 20" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_SENDER: 4" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_SENDER: 20" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_SENDER_SMS: 4" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_SENDER_SMS: 15" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_SENDER_EMAIL: 4" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_SENDER_EMAIL: 20" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_SAVE_API_NOTIFICATIONS: 4" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_SAVE_API_NOTIFICATIONS: 25" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_REPORTING: 1" >> data.yml

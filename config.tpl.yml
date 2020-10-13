@@ -58,6 +58,40 @@ APPS:
           weekends:
             - 08:00-23:00
 
+  - name: notify-delivery-worker-sender-sms
+    min_instances: {{ MIN_INSTANCE_COUNT_SENDER_SMS }}
+    max_instances: {{ MAX_INSTANCE_COUNT_SENDER_SMS }}
+    scalers:
+      - type: ScheduledJobsScaler
+        threshold: 600
+      - type: SqsScaler
+        queues: [send-sms-tasks]
+        threshold: 600
+      - type: ScheduleScaler
+        schedule:
+          scale_factor: 0.4
+          workdays:
+            - 08:00-23:00
+          weekends:
+            - 08:00-23:00
+
+  - name: notify-delivery-worker-sender-email
+    min_instances: {{ MIN_INSTANCE_COUNT_SENDER_EMAIL }}
+    max_instances: {{ MAX_INSTANCE_COUNT_SENDER_EMAIL }}
+    scalers:
+      - type: ScheduledJobsScaler
+        threshold: 600
+      - type: SqsScaler
+        queues: [send-email-tasks]
+        threshold: 600
+      - type: ScheduleScaler
+        schedule:
+          scale_factor: 0.4
+          workdays:
+            - 08:00-23:00
+          weekends:
+            - 08:00-23:00
+
   - name: notify-delivery-worker-jobs
     min_instances: {{ MIN_INSTANCE_COUNT_JOBS }}
     max_instances: {{ MAX_INSTANCE_COUNT_JOBS }}

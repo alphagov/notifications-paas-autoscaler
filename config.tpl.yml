@@ -178,7 +178,7 @@ APPS:
     max_instances: {{ MAX_INSTANCE_COUNT_SAVE_API_NOTIFICATIONS }}
     scalers:
       - type: SqsScaler
-        queues:  [save-api-email-tasks]
+        queues:  [save-api-email-tasks,save-api-sms-tasks]
         threshold: 250
       - type: ScheduleScaler
         schedule:

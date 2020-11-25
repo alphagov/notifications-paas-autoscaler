@@ -68,7 +68,7 @@ APPS:
 
   - name: notify-delivery-worker-retry-tasks
     min_instances: {{ MAX_INSTANCE_COUNT_LOW }}
-    max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
+    max_instances: {{ MAX_INSTANCE_COUNT_MEDIUM }}
     scalers:
       - type: SqsScaler
         queues:  [retry-tasks]
@@ -92,7 +92,7 @@ APPS:
 
   - name: notify-delivery-worker-research
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
-    max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
+    max_instances: {{ MAX_INSTANCE_COUNT_MEDIUM }}
     scalers:
       - type: SqsScaler
         queues:  [research-mode-tasks]

@@ -97,7 +97,7 @@ production:
 	@echo "MAX_INSTANCE_COUNT_SENDER: 30" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_SAVE_API_NOTIFICATIONS: 18" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_SAVE_API_NOTIFICATIONS: 25" >> data.yml
-	@echo "MIN_INSTANCE_COUNT_REPORTING: 1" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_REPORTING: 3" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_REPORTING: 3" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_JOBS: 2" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_JOBS: 25" >> data.yml

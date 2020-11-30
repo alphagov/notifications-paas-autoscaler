@@ -41,6 +41,14 @@ APPS:
           weekends:
             - 08:00-23:00
 
+  - name: notify-api-sms-callbacks
+    min_instances: {{ MAX_INSTANCE_COUNT_MEDIUM }}
+    max_instances: {{ MAX_INSTANCE_COUNT_API }}
+    scalers:
+      - type: SqsScaler
+        queues:  [send-sms-tasks]
+        threshold: 250
+
   - name: notify-delivery-worker-sender
     min_instances: {{ MIN_INSTANCE_COUNT_SENDER }}
     max_instances: {{ MAX_INSTANCE_COUNT_SENDER }}

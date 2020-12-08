@@ -4,6 +4,7 @@ CF_ORG ?= govuk-notify
 SHELL := /bin/bash
 
 CF_APP = notify-paas-autoscaler
+CF_MANIFEST_PATH ?= /tmp/manifest.yml
 
 .PHONY: help
 help:
@@ -134,10 +135,14 @@ cf-deploy: generate-config ## Deploys the app to Cloud Foundry
 	@cf app --guid ${CF_APP} || exit 1
 
 	# cancel any existing deploys to ensure we can apply manifest (if a deploy is in progress you'll see ScaleDisabledDuringDeployment)
-	cf v3-cancel-zdt-push ${CF_APP} || true
+	cf cancel-deployment ${CF_APP} || true
 
-	cf v3-apply-manifest ${CF_APP} -f <(make -s generate-manifest)
-	cf v3-zdt-push ${CF_APP} --wait-for-deploy-complete
+	# generate manifest (including secrets) and write it to CF_MANIFEST_PATH (in /tmp/)
+	make -s CF_APP=${CF_APP} generate-manifest > ${CF_MANIFEST_PATH}
+	# reads manifest from CF_MANIFEST_PATH
+	cf push ${CF_APP} --strategy=rolling -f ${CF_MANIFEST_PATH}
+	# delete old manifest file
+	rm ${CF_MANIFEST_PATH}
 
 
 .PHONY: flake8

@@ -1,6 +1,7 @@
 import datetime
 import logging
 from unittest.mock import patch, Mock
+from http import HTTPStatus
 
 from cloudfoundry_client.errors import InvalidStatusCode
 from freezegun import freeze_time
@@ -139,7 +140,7 @@ class TestScale:
         app.get_desired_instance_count = Mock(return_value=6)
 
         mock_paas_client.return_value.update.side_effect = InvalidStatusCode(
-            status_code=422,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             body={
                 "description": "Cannot scale this process while a deployment is in flight.",
                 "error_code": "CF-ScaleDisabledDuringDeployment",
@@ -164,7 +165,7 @@ class TestScale:
         app.get_desired_instance_count = Mock(return_value=6)
 
         mock_paas_client.return_value.update.side_effect = InvalidStatusCode(
-            status_code=400,
+            status_code=HTTPStatus.BAD_REQUEST,
             body={'description': 'something bad'}
         )
 
@@ -173,7 +174,7 @@ class TestScale:
         mock_paas_client.return_value.update.assert_called_once_with(app_guid, 6)
         assert caplog.record_tuples == [
             ('root', logging.INFO, 'Scaling app-name-1 from 4 to 6'),
-            ('root', logging.ERROR, 'Failed to scale app-name-1: 400 : {"description": "something bad"}')
+            ('root', logging.ERROR, 'Failed to scale app-name-1: BAD_REQUEST : {"description": "something bad"}')
         ]
 
 

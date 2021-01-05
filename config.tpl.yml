@@ -30,9 +30,18 @@ APPS:
     min_instances: {{ MIN_INSTANCE_COUNT_API }}
     max_instances: {{ MAX_INSTANCE_COUNT_API }}
     scalers:
-      - type: ElbScaler
-        elb_name: 'notify-paas-proxy'
-        threshold: 600
+      - type: ScheduleScaler
+        schedule:
+          scale_factor: 0.6
+          workdays:
+            - 08:00-23:00
+          weekends:
+            - 08:00-23:00
+
+  - name: notify-api-sms-callbacks
+    min_instances: {{ MIN_INSTANCE_COUNT_HIGH }}
+    max_instances: {{ MAX_INSTANCE_COUNT_MEDIUM }}
+    scalers:
       - type: ScheduleScaler
         schedule:
           scale_factor: 0.6

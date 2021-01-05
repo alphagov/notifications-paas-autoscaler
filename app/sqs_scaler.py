@@ -31,7 +31,7 @@ class SqsScaler(AwsBaseScaler):
 
     def _get_desired_instance_count(self):
         logging.debug('Processing {}'.format(self.app_name))
-        instance_count_throughput = self._get_desired_instance_count_based_on_throughput_of_tasks_pulled_from_queues()
+        instance_count_throughput = self._get_desired_instance_count_based_on_throughput_of_tasks_put_onto_queues()
         instance_count_queue_length = self._get_desired_instance_count_based_on_current_queue_length()
         # How many instances we run should be enough to handle the current level of throughput, however
         # if the throughput remains the same and we already have items building up in our queue, then we
@@ -44,8 +44,8 @@ class SqsScaler(AwsBaseScaler):
         desired_instance_count = int(math.ceil(total_message_count / float(self.queue_length_threshold)))
         return desired_instance_count
 
-    def _get_desired_instance_count_based_on_throughput_of_tasks_pulled_from_queues(self):
-        total_throughput = self._get_total_throughput_of_tasks_pulled_from_queues(self.queues)
+    def _get_desired_instance_count_based_on_throughput_of_tasks_put_onto_queues(self):
+        total_throughput = self._get_total_throughput_of_tasks_put_onto_queues(self.queues)
         logging.debug('Total throughput: {}'.format(total_throughput))
         desired_instance_count = int(math.ceil(total_throughput / float(self.throughput_threshold)))
         return desired_instance_count
@@ -76,13 +76,13 @@ class SqsScaler(AwsBaseScaler):
     def _get_total_message_count(self, queues):
         return sum(self._get_message_count(queue) for queue in queues)
 
-    def _get_sqs_throughput_of_tasks_pulled_from_queue(self, name):
+    def _get_sqs_throughput_of_tasks_put_onto_queue(self, name):
         self._init_cloudwatch_client()
         start_time = self._now() - timedelta(**self.request_count_time_range)
         end_time = self._now()
         result = self.cloudwatch_client.get_metric_statistics(
             Namespace='AWS/SQS',
-            MetricName='NumberOfMessagesReceived',
+            MetricName='NumberOfMessagesSent',
             Dimensions=[
                 {
                     'Name': 'QueueName',
@@ -99,9 +99,9 @@ class SqsScaler(AwsBaseScaler):
         datapoints = sorted(datapoints, key=lambda x: x['Timestamp'])
         return [row['Sum'] for row in datapoints]
 
-    def _get_throughput_of_tasks_pulled_from_queue(self, queue):
+    def _get_throughput_of_tasks_put_onto_queue(self, queue):
         queue_name = self._get_sqs_queue_name(queue)
-        past_5_mins_of_throughput = self._get_sqs_throughput_of_tasks_pulled_from_queue(queue_name)
+        past_5_mins_of_throughput = self._get_sqs_throughput_of_tasks_put_onto_queue(queue_name)
 
         if len(past_5_mins_of_throughput) == 0:
             past_5_mins_of_throughput = [0]
@@ -114,5 +114,5 @@ class SqsScaler(AwsBaseScaler):
         self.gauge("{}.queue-throughput".format(queue_name), past_5_mins_of_throughput[-1])
         return highest_throughput
 
-    def _get_total_throughput_of_tasks_pulled_from_queues(self, queues):
-        return sum(self._get_throughput_of_tasks_pulled_from_queue(queue) for queue in queues)
+    def _get_total_throughput_of_tasks_put_onto_queues(self, queues):
+        return sum(self._get_throughput_of_tasks_put_onto_queue(queue) for queue in queues)

@@ -60,26 +60,26 @@ staging:
 	@echo "MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW: 2" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW: 4" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW_CELERY: 4" >> data.yml
-	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW_CELERY: 35" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW_CELERY: 20" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_RECEIPTS: 4" >> data.yml
-	@echo "MAX_INSTANCE_COUNT_RECEIPTS: 30" >> data.yml
-	@echo "MIN_INSTANCE_COUNT_SENDER: 18" >> data.yml
-	@echo "MAX_INSTANCE_COUNT_SENDER: 30" >> data.yml
-	@echo "MIN_INSTANCE_COUNT_SAVE_API_NOTIFICATIONS: 18" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_RECEIPTS: 20" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_SENDER: 4" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_SENDER: 20" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_SAVE_API_NOTIFICATIONS: 4" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_SAVE_API_NOTIFICATIONS: 25" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_REPORTING: 1" >> data.yml
-	@echo "MAX_INSTANCE_COUNT_REPORTING: 3" >> data.yml
-	@echo "MIN_INSTANCE_COUNT_JOBS: 2" >> data.yml
-	@echo "MAX_INSTANCE_COUNT_JOBS: 25" >> data.yml
-	@echo "MAX_INSTANCE_COUNT_API: 35" >> data.yml
-	@echo "MIN_INSTANCE_COUNT_API: 35" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_REPORTING: 2" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_JOBS: 1" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_JOBS: 2" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_API: 25" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_API: 4" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_HIGH: 20" >> data.yml
-	@echo "MAX_INSTANCE_COUNT_CALLBACK: 15" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_LOW: 5" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_CALLBACK: 7" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_MEDIUM: 10" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_HIGH: 4" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_LOW: 2" >> data.yml
-	@echo "SCHEDULE_SCALER_ENABLED: True" >> data.yml
+	@echo "SCHEDULE_SCALER_ENABLED: False" >> data.yml
 	@echo "SQS_QUEUE_PREFIX: staging" >> data.yml
 	@echo "STATSD_ENABLED: True" >> data.yml
 	@$(eval export CF_SPACE=staging)

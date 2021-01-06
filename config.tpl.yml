@@ -44,7 +44,7 @@ APPS:
     scalers:
       - type: ScheduleScaler
         schedule:
-          scale_factor: 0.6
+          scale_factor: 1.0
           workdays:
             - 08:00-23:00
           weekends:

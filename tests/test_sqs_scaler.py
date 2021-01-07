@@ -91,7 +91,9 @@ class TestSqsScaler:
         self.input_attrs['queues'] = ['queue1', 'queue2']
         sqs_scaler = SqsScaler(app_name, min_instances, max_instances, **self.input_attrs)
 
-        throughput_mock = mocker.patch.object(sqs_scaler, "_get_desired_instance_count_based_on_queue_throughput")
+        throughput_mock = mocker.patch.object(
+            sqs_scaler, "_get_desired_instance_count_based_on_throughput_of_tasks_put_onto_queues"
+        )
         queue_length_mock = mocker.patch.object(sqs_scaler, "_get_desired_instance_count_based_on_current_queue_length")
         throughput_mock.return_value = 2
         queue_length_mock.return_value = 3
@@ -106,10 +108,12 @@ class TestSqsScaler:
 
         sqs_scaler = SqsScaler(app_name, min_instances, max_instances, **self.input_attrs)
 
-        _get_throughput_mock = mocker.patch.object(sqs_scaler, '_get_throughput', side_effect=[2000, 800])
+        _get_throughput_mock = mocker.patch.object(
+            sqs_scaler, '_get_throughput_of_tasks_put_onto_queue', side_effect=[2000, 800]
+        )
 
         # threshold is 1000
-        assert sqs_scaler._get_desired_instance_count_based_on_queue_throughput() == 3
+        assert sqs_scaler._get_desired_instance_count_based_on_throughput_of_tasks_put_onto_queues() == 3
 
         assert _get_throughput_mock.call_args_list == [
             call('queue1'),
@@ -119,10 +123,12 @@ class TestSqsScaler:
     def test_get_throughput_uses_max_value(self, mock_boto3, mocker):
         sqs_scaler = SqsScaler(app_name, min_instances, max_instances, **self.input_attrs)
 
-        _get_sqs_throughput_mock = mocker.patch.object(sqs_scaler, '_get_sqs_throughput', return_value=[100, 200, 50])
+        _get_sqs_throughput_mock = mocker.patch.object(
+            sqs_scaler, '_get_sqs_throughput_of_tasks_put_onto_queue', return_value=[100, 200, 50]
+        )
         statsd_mock = mocker.patch.object(sqs_scaler, 'statsd_client')
 
-        assert sqs_scaler._get_throughput('my-queue') == 200
+        assert sqs_scaler._get_throughput_of_tasks_put_onto_queue('my-queue') == 200
         # queue prefix "test" pulled from SQS_QUEUE_PREFIX env var
         statsd_mock.gauge.assert_called_once_with('testmy-queue.queue-throughput', 50)
         _get_sqs_throughput_mock.assert_called_once_with('testmy-queue')
@@ -130,10 +136,12 @@ class TestSqsScaler:
     def test_get_throughput_returns_0_if_no_data(self, mock_boto3, mocker):
         sqs_scaler = SqsScaler(app_name, min_instances, max_instances, **self.input_attrs)
 
-        mocker.patch.object(sqs_scaler, '_get_sqs_throughput', return_value=[])
+        mocker.patch.object(
+            sqs_scaler, '_get_sqs_throughput_of_tasks_put_onto_queue', return_value=[]
+        )
         statsd_mock = mocker.patch.object(sqs_scaler, 'statsd_client')
 
-        assert sqs_scaler._get_throughput('my-queue') == 0
+        assert sqs_scaler._get_throughput_of_tasks_put_onto_queue('my-queue') == 0
         statsd_mock.gauge.assert_called_once_with('testmy-queue.queue-throughput', 0)
 
     @freeze_time("2018-03-15 15:10:00")
@@ -152,11 +160,11 @@ class TestSqsScaler:
 
         sqs_scaler = SqsScaler(app_name, min_instances, max_instances, **self.input_attrs)
 
-        assert sqs_scaler._get_sqs_throughput('my-queue') == [1500, 1600, 5500, 5300, 2100]
+        assert sqs_scaler._get_sqs_throughput_of_tasks_put_onto_queue('my-queue') == [1500, 1600, 5500, 5300, 2100]
 
         cloudwatch_client.get_metric_statistics.assert_called_once_with(
             Namespace='AWS/SQS',
-            MetricName='NumberOfMessagesReceived',
+            MetricName='NumberOfMessagesSent',
             Dimensions=[
                 {
                     'Name': 'QueueName',

@@ -98,10 +98,9 @@ APPS:
       - type: SqsScaler
         queues:  [create-letters-pdf-tasks, letter-tasks]
         threshold: 250
-
   - name: notify-delivery-worker-research
-    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
-    max_instances: {{ MAX_INSTANCE_COUNT_MEDIUM }}
+    min_instances: {{ MIN_INSTANCE_COUNT_RESEARCH }}
+    max_instances: {{ MAX_INSTANCE_COUNT_RESEARCH }}
     scalers:
       - type: SqsScaler
         queues:  [research-mode-tasks]

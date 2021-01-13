@@ -87,7 +87,9 @@ class TestSqsScaler:
         ]
         sqs_scaler.statsd_client.gauge.assert_has_calls(calls)
 
-    def test_get_desired_instance_count_sums_based_on_queue_length_and_throughput(self, mock_boto3, mocker):
+    def test_get_desired_instance_count_sums_based_on_queue_length_and_throughput_of_tasks_put_onto_queue(
+        self, mock_boto3, mocker
+    ):
         self.input_attrs['queues'] = ['queue1', 'queue2']
         sqs_scaler = SqsScaler(app_name, min_instances, max_instances, **self.input_attrs)
 
@@ -103,7 +105,7 @@ class TestSqsScaler:
         throughput_mock.assert_called_once()
         queue_length_mock.assert_called_once()
 
-    def test_get_desired_instance_count_based_on_queue_throughput(self, mock_boto3, mocker):
+    def test_get_desired_instance_count_based_on_queue_throughput_of_tasks_put_onto_queue(self, mock_boto3, mocker):
         self.input_attrs['queues'] = ['queue1', 'queue2']
 
         sqs_scaler = SqsScaler(app_name, min_instances, max_instances, **self.input_attrs)
@@ -120,7 +122,7 @@ class TestSqsScaler:
             call('queue2'),
         ]
 
-    def test_get_throughput_uses_max_value(self, mock_boto3, mocker):
+    def test_get_throughput_of_tasks_put_onto_queue_uses_max_value(self, mock_boto3, mocker):
         sqs_scaler = SqsScaler(app_name, min_instances, max_instances, **self.input_attrs)
 
         _get_sqs_throughput_mock = mocker.patch.object(
@@ -133,7 +135,7 @@ class TestSqsScaler:
         statsd_mock.gauge.assert_called_once_with('testmy-queue.queue-throughput', 50)
         _get_sqs_throughput_mock.assert_called_once_with('testmy-queue')
 
-    def test_get_throughput_returns_0_if_no_data(self, mock_boto3, mocker):
+    def test_get_throughput_of_tasks_put_onto_queue_returns_0_if_no_data(self, mock_boto3, mocker):
         sqs_scaler = SqsScaler(app_name, min_instances, max_instances, **self.input_attrs)
 
         mocker.patch.object(
@@ -145,7 +147,7 @@ class TestSqsScaler:
         statsd_mock.gauge.assert_called_once_with('testmy-queue.queue-throughput', 0)
 
     @freeze_time("2018-03-15 15:10:00")
-    def test_get_sqs_throughput(self, mock_boto3):
+    def test_get_sqs_throughput_of_tasks_put_onto_queue(self, mock_boto3):
         self.input_attrs['queues'] = ['queue1', 'queue2']
 
         cloudwatch_client = mock_boto3.client.return_value

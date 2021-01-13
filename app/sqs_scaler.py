@@ -33,6 +33,12 @@ class SqsScaler(AwsBaseScaler):
         logging.debug('Processing {}'.format(self.app_name))
         instance_count_throughput = self._get_desired_instance_count_based_on_throughput_of_tasks_put_onto_queues()
         instance_count_queue_length = self._get_desired_instance_count_based_on_current_queue_length()
+
+        # We don't actually use these metrics for determining how many instances should be counted
+        # We are only having those code here as it's the easiest and quickest way to publish very similar metrics to
+        # those we use for number of items in the queue and number of items being put onto the queue
+        self._publish_metrics_for_throughput_of_tasks_pulled_from_queues()
+
         # How many instances we run should be enough to handle the current level of throughput, however
         # if the throughput remains the same and we already have items building up in our queue, then we
         # wish to scale even higher to bring the queue down
@@ -105,14 +111,56 @@ class SqsScaler(AwsBaseScaler):
 
         if len(past_5_mins_of_throughput) == 0:
             past_5_mins_of_throughput = [0]
-        logging.debug('Throughput of tasks pulled from queue: {}'.format(past_5_mins_of_throughput))
+        logging.debug('Throughput of tasks put onto queue: {}'.format(past_5_mins_of_throughput))
 
         # Keep the highest throughput over the specified time range
         highest_throughput = max(past_5_mins_of_throughput)
-        logging.debug('Highest throughput of tasks pulled from queue: {}'.format(highest_throughput))
+        logging.debug('Highest throughput of tasks put onto queue: {}'.format(highest_throughput))
 
         self.gauge("{}.queue-throughput".format(queue_name), past_5_mins_of_throughput[-1])
         return highest_throughput
 
     def _get_total_throughput_of_tasks_put_onto_queues(self, queues):
         return sum(self._get_throughput_of_tasks_put_onto_queue(queue) for queue in queues)
+
+    def _get_sqs_throughput_of_tasks_pulled_from_queue(self, name):
+        self._init_cloudwatch_client()
+        start_time = self._now() - timedelta(**self.request_count_time_range)
+        end_time = self._now()
+        result = self.cloudwatch_client.get_metric_statistics(
+            Namespace='AWS/SQS',
+            MetricName='NumberOfMessagesReceived',
+            Dimensions=[
+                {
+                    'Name': 'QueueName',
+                    'Value': name
+                },
+            ],
+            StartTime=start_time,
+            EndTime=end_time,
+            Period=60,
+            Statistics=['Sum'],
+            Unit='Count'
+        )
+        datapoints = result['Datapoints']
+        datapoints = sorted(datapoints, key=lambda x: x['Timestamp'])
+        return [row['Sum'] for row in datapoints]
+
+    def _get_throughput_of_tasks_pulled_from_queue(self, queue):
+        queue_name = self._get_sqs_queue_name(queue)
+        past_5_mins_of_throughput = self._get_sqs_throughput_of_tasks_pulled_from_queue(queue_name)
+
+        if len(past_5_mins_of_throughput) == 0:
+            past_5_mins_of_throughput = [0]
+        logging.debug('Throughput of tasks pulled from queue: {}'.format(past_5_mins_of_throughput))
+
+        # Keep the highest throughput over the specified time range
+        highest_throughput = max(past_5_mins_of_throughput)
+        logging.debug('Highest throughput of tasks pulled from queue: {}'.format(highest_throughput))
+
+        self.gauge("{}.throughput-tasks-pulled-from-queue".format(queue_name), past_5_mins_of_throughput[-1])
+        return highest_throughput
+
+    def _publish_metrics_for_throughput_of_tasks_pulled_from_queues(self):
+        for queue in self.queues:
+            self._get_throughput_of_tasks_pulled_from_queue(queue)

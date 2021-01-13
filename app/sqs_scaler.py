@@ -105,11 +105,11 @@ class SqsScaler(AwsBaseScaler):
 
         if len(past_5_mins_of_throughput) == 0:
             past_5_mins_of_throughput = [0]
-        logging.debug('Throughput of tasks pulled from queue: {}'.format(past_5_mins_of_throughput))
+        logging.debug('Throughput of tasks put onto queue: {}'.format(past_5_mins_of_throughput))
 
         # Keep the highest throughput over the specified time range
         highest_throughput = max(past_5_mins_of_throughput)
-        logging.debug('Highest throughput of tasks pulled from queue: {}'.format(highest_throughput))
+        logging.debug('Highest throughput of tasks put onto queue: {}'.format(highest_throughput))
 
         self.gauge("{}.queue-throughput".format(queue_name), past_5_mins_of_throughput[-1])
         return highest_throughput

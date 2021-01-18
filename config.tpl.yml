@@ -203,3 +203,11 @@ APPS:
       - type: SqsScaler
         queues:  [antivirus-tasks]
         threshold: 50
+
+  - name: notify-delivery-worker-broadcasts
+    min_instances: {{ MIN_INSTANCE_COUNT_BROADCASTS }}
+    max_instances: {{ MAX_INSTANCE_COUNT_BROADCASTS }}
+    scalers:
+      - type: SqsScaler
+        queues:  [broadcast-tasks]
+        threshold: 50

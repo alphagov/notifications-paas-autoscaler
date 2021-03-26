@@ -42,6 +42,8 @@ APPS:
     min_instances: {{ MIN_INSTANCE_COUNT_HIGH }}
     max_instances: {{ MAX_INSTANCE_COUNT_MEDIUM }}
     scalers:
+      - type: CpuScaler
+        threshold: {{ DEFAULT_CPU_PERCENTAGE_THRESHOLD }}
       - type: ScheduleScaler
         schedule:
           scale_factor: 1.0

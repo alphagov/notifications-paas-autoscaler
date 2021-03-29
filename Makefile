@@ -50,6 +50,7 @@ preview:
 	@echo "MAX_INSTANCE_COUNT_LOW: 1" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_CALLBACK: 1" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_MEDIUM: 1" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_API_SMS_CALLBACKS: 1" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_HIGH: 1" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_LOW: 1" >> data.yml
 	@echo "SCHEDULE_SCALER_ENABLED: False" >> data.yml
@@ -85,6 +86,7 @@ staging:
 	@echo "MAX_INSTANCE_COUNT_LOW: 5" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_CALLBACK: 7" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_MEDIUM: 10" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_API_SMS_CALLBACKS: 15" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_HIGH: 4" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_LOW: 2" >> data.yml
 	@echo "SCHEDULE_SCALER_ENABLED: False" >> data.yml
@@ -120,6 +122,7 @@ production:
 	@echo "MAX_INSTANCE_COUNT_CALLBACK: 20" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_LOW: 5" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_MEDIUM: 10" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_API_SMS_CALLBACKS: 15" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_HIGH: 4" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_LOW: 2" >> data.yml
 	@echo "SCHEDULE_SCALER_ENABLED: True" >> data.yml
@@ -192,6 +195,7 @@ test: flake8
 	@echo "MAX_INSTANCE_COUNT_LOW: 5" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_CALLBACK: 7" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_MEDIUM: 10" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_API_SMS_CALLBACKS: 15" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_HIGH: 4" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_LOW: 2" >> data.yml
 	@echo "SCHEDULE_SCALER_ENABLED: True" >> data.yml

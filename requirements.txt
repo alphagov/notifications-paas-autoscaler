@@ -1,8 +1,8 @@
-boto3==1.16.30
-cloudfoundry-client==1.14.1
-psycopg2-binary==2.8.4
-pyyaml==5.3.1
-redis==3.4.1
-pytz==2020.4
+boto3==1.17.38
+cloudfoundry-client==1.16.1
+psycopg2-binary==2.8.6
+pyyaml==5.4.1
+redis==3.5.3
+pytz==2021.1
 
-git+https://github.com/alphagov/notifications-utils.git@43.5.4#egg=notifications-utils==43.5.4
+git+https://github.com/alphagov/notifications-utils.git@44.0.2#egg=notifications-utils==44.0.2

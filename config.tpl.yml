@@ -38,7 +38,7 @@ APPS:
           weekends:
             - 08:00-23:00
 
-  - name: notify-api-sms-callbacks
+  - name: notify-api-sms-receipts
     min_instances: {{ MIN_INSTANCE_COUNT_HIGH }}
     max_instances: {{ MAX_INSTANCE_COUNT_MEDIUM }}
     scalers:

@@ -40,7 +40,7 @@ APPS:
 
   - name: notify-api-sms-receipts
     min_instances: {{ MIN_INSTANCE_COUNT_HIGH }}
-    max_instances: {{ MAX_INSTANCE_COUNT_MEDIUM }}
+    max_instances: {{ MAX_INSTANCE_COUNT_API_SMS_RECEIPTS }}
     scalers:
       - type: ScheduleScaler
         schedule:

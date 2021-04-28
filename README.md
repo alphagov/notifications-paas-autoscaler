@@ -17,7 +17,7 @@ make test
 
 The application uses a user provided service to read the secret credentials it needs.
 
-Edit the ```credentials/<env>/paas/service/paas-auto-scaler``` file in the notify-credentials repository, which has the following format:
+Edit the `credentials/<env>/notify-paas-auto-scaler/paas-environment` file in the notify-credentials repository, which has the following format:
 
 ```
 {

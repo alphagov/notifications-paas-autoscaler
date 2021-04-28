@@ -4,15 +4,12 @@ Autoscaling agent for the Notify PaaS applications.
 
 Runs every few seconds, checks some metrics and sets the desired instance count accordingly. See [the config file](config.tpl.yml) for global and per-app settings. See [the Makefile](Makefile) for per-environment settings.
 
-## Installation
+## To test the application
 
 ```
-pip install -r requirements.txt
-```
+# install dependencies
+make bootstrap
 
-## Running tests
-
-```
 make test
 ```
 

@@ -160,6 +160,10 @@ cf-deploy: generate-config ## Deploys the app to Cloud Foundry
 	rm ${CF_MANIFEST_PATH}
 
 
+.PHONY: bootstrap
+bootstrap:
+	pip3 install -r requirements_for_test.txt
+
 .PHONY: flake8
 flake8:
 	flake8 app/ tests/ --max-line-length=120

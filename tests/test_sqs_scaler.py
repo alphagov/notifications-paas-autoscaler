@@ -1,7 +1,7 @@
 from datetime import datetime
+from unittest.mock import Mock, call, patch
 
 from freezegun import freeze_time
-from unittest.mock import patch, Mock, call
 
 from app.sqs_scaler import SqsScaler
 

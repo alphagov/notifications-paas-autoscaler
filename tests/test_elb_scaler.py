@@ -1,5 +1,5 @@
-from unittest.mock import patch, Mock
 import datetime
+from unittest.mock import Mock, patch
 
 from freezegun import freeze_time
 

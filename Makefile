@@ -206,6 +206,7 @@ test-data:
 
 .PHONY: test
 test: test-data
+	isort --check-only ./app ./tests
 	flake8 app/ tests/ --max-line-length=120
 	STATSD_HOST=testing.local REDIS_URL=redis://redis.local pytest -v --cov=app/ tests/
 	rm config.yml data.yml

@@ -1,13 +1,13 @@
-from unittest.mock import patch
-from datetime import datetime, timedelta
 import json
 import os
+from datetime import datetime, timedelta
+from unittest.mock import patch
 
 import psycopg2
 import pytest
 from freezegun import freeze_time
 
-from app.base_scalers import BaseScaler, AwsBaseScaler, DbQueryScaler
+from app.base_scalers import AwsBaseScaler, BaseScaler, DbQueryScaler
 
 app_name = 'test-app'
 min_instances = 1

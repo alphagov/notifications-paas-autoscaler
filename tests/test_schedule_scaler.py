@@ -1,9 +1,9 @@
-from unittest.mock import patch
 import datetime
+from unittest.mock import patch
 
-from freezegun import freeze_time
 import pytest
 import pytz
+from freezegun import freeze_time
 
 import app
 from app.schedule_scaler import ScheduleScaler

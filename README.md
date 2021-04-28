@@ -7,7 +7,6 @@ Runs every `SCHEDULE_INTERVAL_SECONDS` (currently 5 seconds) interval, checks so
 ## Installation
 
 ```
-mkvirtualenv -p /usr/local/bin/python3 notifications-paas-autoscaler
 pip install -r requirements.txt
 ```
 

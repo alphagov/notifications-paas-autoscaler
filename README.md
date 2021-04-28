@@ -2,7 +2,7 @@
 
 Autoscaling agent for the Notify PaaS applications.
 
-Runs every `SCHEDULE_INTERVAL_SECONDS` (currently 5 seconds) interval, checks some metrics and sets the desired instance count accordingly.
+Runs every few seconds, checks some metrics and sets the desired instance count accordingly. See [the config file](config.tpl.yml) for global and per-app settings. See [the Makefile](Makefile) for per-environment settings.
 
 ## Installation
 
@@ -15,36 +15,6 @@ pip install -r requirements.txt
 ```
 make test
 ```
-
-## Scheduled scaling
-
-The Autoscaler can scale the worker applications based on a schedule defined in the `schedule.yml` file.
-
-The format of the file is:
-
-```
-name-of-the-app:
-  <workdays|weekends>:
-      - HH:MM-HH:MM
-      - HH:MM-HH:MM
-      - ...
-name-of-another-app:
-  <workdays|weekends>:
-      - HH:MM-HH:MM
-      - ...
-```
-
-For example, if you need to schedule the research worker to scale on weekends between
-9 in the morning and 2 in the afternoon you would add this to the `schedule.yml`:
-
-```
-notify-delivery-worker-research:
-  weekends:
-    - 09:00-14:00
-```
-
-The Autoscaler will scale the specified apps to the number of instances equal to `SCHEDULED_SCALE_FACTOR` * `max_instance_count`
-unless some other metric requires the instance to scale to a higher number (e.g. a large scheduled job)
 
 ## Authentication credentials
 

@@ -164,14 +164,8 @@ cf-deploy: generate-config ## Deploys the app to Cloud Foundry
 bootstrap:
 	pip3 install -r requirements_for_test.txt
 
-.PHONY: flake8
-flake8:
-	flake8 app/ tests/ --max-line-length=120
-
-.PHONY: test
-test: flake8
-	@$(eval export CONFIG_PATH=$(shell pwd)/config.yml)
-	@$(eval export CF_SPACE=test)
+.PHONY: test-data
+test-data:
 	@if [ -f data.yml ]; then rm data.yml; fi
 	@echo "---" >> data.yml
 	@echo "CF_SPACE: test" >> data.yml
@@ -205,7 +199,14 @@ test: flake8
 	@echo "SCHEDULE_SCALER_ENABLED: True" >> data.yml
 	@echo "SQS_QUEUE_PREFIX: test" >> data.yml
 	@echo "STATSD_ENABLED: False" >> data.yml
+
+	@$(eval export CONFIG_PATH=$(shell pwd)/config.yml)
+	@$(eval export CF_SPACE=test)
 	@make generate-config
+
+.PHONY: test
+test: test-data
+	flake8 app/ tests/ --max-line-length=120
 	STATSD_HOST=testing.local REDIS_URL=redis://redis.local pytest -v --cov=app/ tests/
 	rm config.yml data.yml
 	# run specific test with debugger

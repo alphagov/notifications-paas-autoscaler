@@ -12,7 +12,7 @@ class _StatsdWrapper():
             'STATSD_ENABLED': config['GENERAL']['STATSD_ENABLED'],
             'NOTIFY_ENVIRONMENT': config['GENERAL']['CF_SPACE'],
             'NOTIFY_APP_NAME': 'autoscaler',
-            'STATSD_HOST': os.environ['STATSD_HOST'],
+            'STATSD_HOST': os.environ.get('STATSD_HOST', 'testing.local'),
             'STATSD_PORT': 8125,
         })
         self.statsd_client = StatsdClient()

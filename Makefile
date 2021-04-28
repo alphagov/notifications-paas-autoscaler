@@ -208,7 +208,5 @@ test-data:
 test: test-data
 	isort --check-only ./app ./tests
 	flake8 app/ tests/ --max-line-length=120
-	STATSD_HOST=testing.local REDIS_URL=redis://redis.local pytest -v --cov=app/ tests/
+	pytest
 	rm config.yml data.yml
-	# run specific test with debugger
-	# STATSD_HOST=testing.local REDIS_URL=redis://redis.local pytest -s tests/test_autoscaler.py::TestScale::test_scale_paas_app_handles_deployments

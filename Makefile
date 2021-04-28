@@ -10,10 +10,6 @@ CF_MANIFEST_PATH ?= /tmp/manifest.yml
 help:
 	@cat $(MAKEFILE_LIST) | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-.PHONY: dependencies
-dependencies: ## Install build dependencies
-	pip install -r requirements.txt
-
 generate-config:
 	@$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
 	@echo "COOLDOWN_SECONDS_AFTER_SCALE_UP: 300" >> data.yml

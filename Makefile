@@ -162,7 +162,7 @@ cf-deploy: generate-config ## Deploys the app to Cloud Foundry
 
 .PHONY: bootstrap
 bootstrap:
-	pip3 install -r requirements_for_test.txt
+	pip install -r requirements_for_test.txt
 
 .PHONY: test-data
 test-data:

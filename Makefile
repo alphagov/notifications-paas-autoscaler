@@ -207,5 +207,6 @@ test: flake8
 	@echo "STATSD_ENABLED: False" >> data.yml
 	@make generate-config
 	STATSD_HOST=testing.local REDIS_URL=redis://redis.local pytest -v --cov=app/ tests/
+	rm config.yml data.yml
 	# run specific test with debugger
 	# STATSD_HOST=testing.local REDIS_URL=redis://redis.local pytest -s tests/test_autoscaler.py::TestScale::test_scale_paas_app_handles_deployments

@@ -1,4 +1,5 @@
 from unittest.mock import patch
+
 import pytest
 
 from app.cpu_scaler import CpuScaler

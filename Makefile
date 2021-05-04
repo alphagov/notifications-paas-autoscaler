@@ -10,10 +10,6 @@ CF_MANIFEST_PATH ?= /tmp/manifest.yml
 help:
 	@cat $(MAKEFILE_LIST) | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-.PHONY: dependencies
-dependencies: ## Install build dependencies
-	pip install -r requirements.txt
-
 generate-config:
 	@$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
 	@echo "COOLDOWN_SECONDS_AFTER_SCALE_UP: 300" >> data.yml
@@ -160,14 +156,12 @@ cf-deploy: generate-config ## Deploys the app to Cloud Foundry
 	rm ${CF_MANIFEST_PATH}
 
 
-.PHONY: flake8
-flake8:
-	flake8 app/ tests/ --max-line-length=120
+.PHONY: bootstrap
+bootstrap:
+	pip install -r requirements_for_test.txt
 
-.PHONY: test
-test: flake8
-	@$(eval export CONFIG_PATH=$(shell pwd)/config.yml)
-	@$(eval export CF_SPACE=test)
+.PHONY: test-data
+test-data:
 	@if [ -f data.yml ]; then rm data.yml; fi
 	@echo "---" >> data.yml
 	@echo "CF_SPACE: test" >> data.yml
@@ -201,7 +195,14 @@ test: flake8
 	@echo "SCHEDULE_SCALER_ENABLED: True" >> data.yml
 	@echo "SQS_QUEUE_PREFIX: test" >> data.yml
 	@echo "STATSD_ENABLED: False" >> data.yml
+
+	@$(eval export CONFIG_PATH=$(shell pwd)/config.yml)
+	@$(eval export CF_SPACE=test)
 	@make generate-config
-	STATSD_HOST=testing.local REDIS_URL=redis://redis.local pytest -v --cov=app/ tests/
-	# run specific test with debugger
-	# STATSD_HOST=testing.local REDIS_URL=redis://redis.local pytest -s tests/test_autoscaler.py::TestScale::test_scale_paas_app_handles_deployments
+
+.PHONY: test
+test: test-data
+	isort --check-only ./app ./tests
+	flake8 app/ tests/ --max-line-length=120
+	pytest
+	rm config.yml data.yml

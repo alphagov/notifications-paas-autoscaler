@@ -24,7 +24,7 @@ class Autoscaler:
         self.cooldown_seconds_after_scale_down = config['GENERAL']['COOLDOWN_SECONDS_AFTER_SCALE_DOWN']
         self.statsd_client = get_statsd_client()
         self.paas_client = PaasClient()
-        self.redis_client = Redis.from_url(os.environ['REDIS_URL'])
+        self.redis_client = Redis.from_url(os.environ.get('REDIS_URL', 'redis://redis.local'))
         self._load_autoscaler_apps()
 
     def _load_autoscaler_apps(self):

@@ -1,17 +1,17 @@
 import datetime
 import logging
-from unittest.mock import patch, Mock
 from http import HTTPStatus
+from unittest.mock import Mock, patch
 
-from cloudfoundry_client.errors import InvalidStatusCode
-from freezegun import freeze_time
 import fakeredis
 import yaml
+from cloudfoundry_client.errors import InvalidStatusCode
+from freezegun import freeze_time
 
+from app.app import App
 from app.autoscaler import Autoscaler
 from app.base_scalers import AwsBaseScaler
 from app.elb_scaler import ElbScaler
-from app.app import App
 
 SCALEUP_COOLDOWN_SECONDS = 300
 SCALEDOWN_COOLDOWN_SECONDS = 60

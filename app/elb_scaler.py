@@ -1,6 +1,6 @@
-from datetime import timedelta
 import logging
 import math
+from datetime import timedelta
 
 from app.base_scalers import AwsBaseScaler
 

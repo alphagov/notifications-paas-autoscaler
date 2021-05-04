@@ -1,6 +1,6 @@
 # flake8: noqa
 
-from unittest.mock import patch, MagicMock, PropertyMock
+from unittest.mock import MagicMock, PropertyMock, patch
 
 from app.paas_client import PaasClient
 

@@ -1,13 +1,13 @@
-from datetime import datetime, timedelta
 import json
 import logging
 import os
+from datetime import datetime, timedelta
 
-import psycopg2
 import boto3
+import psycopg2
 
-from app.utils import get_statsd_client
 from app.paas_client import PaasClient
+from app.utils import get_statsd_client
 
 
 class BaseScaler:

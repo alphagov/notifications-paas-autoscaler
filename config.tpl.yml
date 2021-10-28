@@ -39,7 +39,7 @@ APPS:
             - 08:00-23:00
 
   - name: notify-api-sms-receipts
-    min_instances: {{ MIN_INSTANCE_COUNT_HIGH }}
+    min_instances: {{ MIN_INSTANCE_COUNT_API_SMS_RECEIPTS }}
     max_instances: {{ MAX_INSTANCE_COUNT_API_SMS_RECEIPTS }}
     scalers:
       - type: ScheduleScaler

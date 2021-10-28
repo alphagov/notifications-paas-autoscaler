@@ -64,10 +64,10 @@ staging:
 	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW: 4" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW_CELERY: 4" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW_CELERY: 20" >> data.yml
-	@echo "MIN_INSTANCE_COUNT_RECEIPTS: 4" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_RECEIPTS: 20" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_RECEIPTS: 20" >> data.yml
-	@echo "MIN_INSTANCE_COUNT_SENDER: 4" >> data.yml
-	@echo "MAX_INSTANCE_COUNT_SENDER: 20" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_SENDER: 40" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_SENDER: 40" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_SAVE_API_NOTIFICATIONS: 4" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_SAVE_API_NOTIFICATIONS: 25" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_REPORTING: 1" >> data.yml
@@ -76,8 +76,8 @@ staging:
 	@echo "MAX_INSTANCE_COUNT_JOBS: 2" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_BROADCASTS: 2" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_BROADCASTS: 2" >> data.yml
-	@echo "MAX_INSTANCE_COUNT_API: 25" >> data.yml
-	@echo "MIN_INSTANCE_COUNT_API: 4" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_API: 60" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_API: 60" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_RESEARCH: 2" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_RESEARCH: 4" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_HIGH: 20" >> data.yml
@@ -85,6 +85,7 @@ staging:
 	@echo "MAX_INSTANCE_COUNT_CALLBACK: 7" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_MEDIUM: 10" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_API_SMS_RECEIPTS: 15" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_API_SMS_RECEIPTS: 10" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_HIGH: 4" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_LOW: 2" >> data.yml
 	@echo "SCHEDULE_SCALER_ENABLED: False" >> data.yml

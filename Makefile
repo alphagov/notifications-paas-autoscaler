@@ -6,6 +6,8 @@ SHELL := /bin/bash
 CF_APP = notify-paas-autoscaler
 CF_MANIFEST_PATH ?= /tmp/manifest.yml
 
+NOTIFY_CREDENTIALS ?= ~/.notify-credentials
+
 .PHONY: help
 help:
 	@cat $(MAKEFILE_LIST) | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

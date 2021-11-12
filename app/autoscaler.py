@@ -82,7 +82,7 @@ class Autoscaler:
         except InvalidStatusCode as e:
             if e.body.get('error_code') == 'CF-ScaleDisabledDuringDeployment':
                 msg = 'Cannot scale during deployment {}'.format(app.name)
-                logging.info(msg)
+                logging.debug(msg)
             else:
                 msg = 'Failed to scale {}: {}'.format(app.name, str(e))
                 logging.error(msg)
@@ -94,11 +94,11 @@ class Autoscaler:
         if desired < current:
 
             if self._recent_scale(app_name, 'last_scale_up', self.cooldown_seconds_after_scale_up):
-                logging.info("Skipping scale down due to recent scale up event")
+                logging.debug("Skipping scale down due to recent scale up event")
                 return current
 
             if self._recent_scale(app_name, 'last_scale_down', self.cooldown_seconds_after_scale_down):
-                logging.info("Skipping scale down due to a recent scale down event")
+                logging.debug("Skipping scale down due to a recent scale down event")
                 return current
 
             self._set_last_scale('last_scale_down', app_name, self._now())

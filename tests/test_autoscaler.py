@@ -132,7 +132,7 @@ class TestScale:
         mock_paas_client.return_value.assert_not_called()
 
     def test_scale_paas_app_handles_deployments(self, mock_get_statsd_client, mock_paas_client, _, caplog):
-        caplog.set_level(logging.INFO)
+        caplog.set_level(logging.DEBUG)
         app_name = 'app-name-1'
         app_guid = '11111-11111-11111111-1111'
         cf_info = {'name': app_name, 'instances': 4, 'guid': app_guid}
@@ -153,7 +153,7 @@ class TestScale:
         mock_paas_client.return_value.update.assert_called_once_with(app_guid, 6)
         assert caplog.record_tuples == [
             ('root', logging.INFO, 'Scaling app-name-1 from 4 to 6'),
-            ('root', logging.INFO, 'Cannot scale during deployment app-name-1')
+            ('root', logging.DEBUG, 'Cannot scale during deployment app-name-1')
         ]
 
     def test_scale_paas_app_handles_unexpected_errors(self, mock_get_statsd_client, mock_paas_client, _, caplog):

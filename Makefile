@@ -67,7 +67,7 @@ staging:
 	@echo "MIN_INSTANCE_COUNT_RECEIPTS: 4" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_RECEIPTS: 50" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_SENDER: 18" >> data.yml
-	@echo "MAX_INSTANCE_COUNT_SENDER: 30" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_SENDER: 45" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_SAVE_API_NOTIFICATIONS: 18" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_SAVE_API_NOTIFICATIONS: 50" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_REPORTING: 3" >> data.yml

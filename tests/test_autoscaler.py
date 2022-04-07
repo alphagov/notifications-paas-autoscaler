@@ -174,7 +174,7 @@ class TestScale:
         mock_paas_client.return_value.update.assert_called_once_with(app_guid, 6)
         assert caplog.record_tuples == [
             ('root', logging.INFO, 'Scaling app-name-1 from 4 to 6'),
-            ('root', logging.ERROR, 'Failed to scale app-name-1: BAD_REQUEST : {"description": "something bad"}')
+            ('root', logging.ERROR, 'Failed to scale app-name-1: BAD_REQUEST = {"description": "something bad"}')
         ]
 
 

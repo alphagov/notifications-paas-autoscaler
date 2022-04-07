@@ -208,3 +208,8 @@ test: test-data
 	flake8 app/ tests/ --max-line-length=120
 	pytest
 	rm config.yml data.yml
+
+.PHONY: freeze-requirements
+freeze-requirements: ## Pin all requirements including sub dependencies into requirements.txt
+	pip install --upgrade pip-tools
+	pip-compile requirements.in

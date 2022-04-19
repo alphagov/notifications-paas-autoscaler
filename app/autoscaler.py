@@ -1,4 +1,5 @@
 import datetime
+import json
 import logging
 import os
 import sched
@@ -14,6 +15,15 @@ from app.paas_client import PaasClient
 from app.utils import get_statsd_client
 
 
+def _get_redis_url():
+    if 'VCAP_SERVICES' in os.environ:
+        try:
+            return json.loads(os.environ['VCAP_SERVICES'])['redis'][0]['credentials']['uri']
+        except Exception:
+            logging.exception('Could not find notify-redis credentials. Ensure the app is running on paas and bound to the redis service.')  # noqa
+    return 'redis://redis.local'
+
+
 class Autoscaler:
     def __init__(self):
         self.last_scale_up = {}
@@ -24,7 +34,10 @@ class Autoscaler:
         self.cooldown_seconds_after_scale_down = config['GENERAL']['COOLDOWN_SECONDS_AFTER_SCALE_DOWN']
         self.statsd_client = get_statsd_client()
         self.paas_client = PaasClient()
-        self.redis_client = Redis.from_url(os.environ.get('REDIS_URL', 'redis://redis.local'))
+
+        redis_url = _get_redis_url()
+
+        self.redis_client = Redis.from_url(redis_url)
         self._load_autoscaler_apps()
 
     def _load_autoscaler_apps(self):

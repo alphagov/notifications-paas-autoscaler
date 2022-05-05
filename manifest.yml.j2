@@ -17,7 +17,6 @@ applications:
       AWS_SECRET_ACCESS_KEY: {{ aws_secret_access_key }}
       CF_USERNAME: {{ cf_username }}
       CF_PASSWORD: {{ cf_password }}
-      REDIS_URL: {{ redis_url }}
     services:
       - notify-db
       - logit-ssl-syslog-drain

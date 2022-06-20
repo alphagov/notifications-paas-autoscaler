@@ -9,7 +9,9 @@ aiohttp==3.8.1
 aiosignal==1.2.0
     # via aiohttp
 async-timeout==4.0.2
-    # via aiohttp
+    # via
+    #   aiohttp
+    #   redis
 attrs==21.4.0
     # via aiohttp
 bleach==4.1.0
@@ -115,7 +117,7 @@ pyyaml==5.4.1
     #   -r requirements.in
     #   cloudfoundry-client
     #   notifications-utils
-redis==4.1.4
+redis==4.3.3
     # via
     #   -r requirements.in
     #   flask-redis

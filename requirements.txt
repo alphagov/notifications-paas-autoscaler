@@ -97,7 +97,7 @@ phonenumbers==8.12.46
     # via notifications-utils
 polling2==0.4.6
     # via cloudfoundry-client
-protobuf==3.20.0
+protobuf==3.20.2
     # via cloudfoundry-client
 psycopg2-binary==2.9.3
     # via -r requirements.in

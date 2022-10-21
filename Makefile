@@ -117,7 +117,7 @@ production:
 	@echo "MIN_INSTANCE_COUNT_RESEARCH: 2" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_RESEARCH: 60" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_HIGH: 20" >> data.yml
-	@echo "MAX_INSTANCE_COUNT_CALLBACK: 30" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_CALLBACK: 45" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_LOW: 5" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_MEDIUM: 10" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_API_SMS_RECEIPTS: 15" >> data.yml

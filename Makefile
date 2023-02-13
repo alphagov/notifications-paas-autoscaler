@@ -206,6 +206,7 @@ test-data:
 test: test-data
 	isort --check-only ./app ./tests
 	flake8 app/ tests/ --max-line-length=120
+	black --check .
 	pytest
 	rm config.yml data.yml
 

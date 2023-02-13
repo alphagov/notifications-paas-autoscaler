@@ -10,8 +10,8 @@ from app.config import config
 class ScheduleScaler(BaseScaler):
     def __init__(self, app_name, min_instances, max_instances, **kwargs):
         super().__init__(app_name, min_instances, max_instances)
-        self.schedule = kwargs['schedule']
-        self.scale_factor = self.schedule.get('scale_factor') or config['SCALERS']['DEFAULT_SCHEDULE_SCALE_FACTOR']
+        self.schedule = kwargs["schedule"]
+        self.scale_factor = self.schedule.get("scale_factor") or config["SCALERS"]["DEFAULT_SCHEDULE_SCALE_FACTOR"]
 
     def _get_desired_instance_count(self):
         if not self._should_scale_on_schedule():
@@ -20,7 +20,7 @@ class ScheduleScaler(BaseScaler):
         return int(math.ceil(self.max_instances * self.scale_factor))
 
     def _should_scale_on_schedule(self):
-        if not config['SCALERS']['SCHEDULE_SCALER_ENABLED']:
+        if not config["SCALERS"]["SCHEDULE_SCALER_ENABLED"]:
             return False
 
         now = self._now()
@@ -32,8 +32,7 @@ class ScheduleScaler(BaseScaler):
 
         for time_range_string in self.schedule[week_part]:
             # convert the time range string to time objects
-            start, end = [datetime.datetime.strptime(i, '%H:%M').time()
-                          for i in time_range_string.split('-')]
+            start, end = [datetime.datetime.strptime(i, "%H:%M").time() for i in time_range_string.split("-")]
 
             if start <= now.time() <= end:
                 return True

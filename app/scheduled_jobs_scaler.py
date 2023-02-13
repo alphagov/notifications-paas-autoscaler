@@ -4,7 +4,7 @@ from app.base_scalers import DbQueryScaler
 
 
 class ScheduledJobsScaler(DbQueryScaler):
-    scheduled_job_lookahead = '1 minute'
+    scheduled_job_lookahead = "1 minute"
     # use only a third of the items because not everything gets put on the queue at once
     scheduled_items_factor = 0.3
 
@@ -19,7 +19,7 @@ class ScheduledJobsScaler(DbQueryScaler):
         job_status = 'scheduled';
         """
         self.query = query.format(self.scheduled_job_lookahead)
-        self.threshold = kwargs['threshold']
+        self.threshold = kwargs["threshold"]
 
     def _get_desired_instance_count(self):
         scheduled_items = self.run_query()

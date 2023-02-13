@@ -6,7 +6,7 @@ class App:
         self.name = name
         self.scalers = []
         for scaler in scalers:
-            scaler_cls = getattr(app, scaler['type'])
+            scaler_cls = getattr(app, scaler["type"])
             self.scalers.append(scaler_cls(name, min_instances, max_instances, **scaler))
 
     def query_scalers(self):

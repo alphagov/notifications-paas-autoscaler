@@ -8,7 +8,7 @@ from app.exceptions import CannotLoadConfig
 
 
 def read_config():
-    config_path = Path(os.environ.get('CONFIG_PATH', './../config.yml')).resolve()
+    config_path = Path(os.environ.get("CONFIG_PATH", "./../config.yml")).resolve()
     try:
         with open(config_path) as f:
             return yaml.safe_load(f)

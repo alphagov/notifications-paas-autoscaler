@@ -39,8 +39,10 @@ class AwsBaseScaler(BaseScaler):
     def __init__(self, app_name, min_instances, max_instances, aws_region=None):
         super().__init__(app_name, min_instances, max_instances)
 
-        self.aws_region = aws_region or os.environ.get('AWS_REGION', 'eu-west-1')
-        self.aws_account_id = self._get_boto3_client('sts', region_name=self.aws_region).get_caller_identity()['Account']  # noqa
+        self.aws_region = aws_region or os.environ.get("AWS_REGION", "eu-west-1")
+        self.aws_account_id = self._get_boto3_client("sts", region_name=self.aws_region).get_caller_identity()[
+            "Account"
+        ]  # noqa
 
     def _get_boto3_client(self, client, **kwargs):
         return boto3.client(client, **kwargs)
@@ -62,8 +64,7 @@ class DbQueryScaler(BaseScaler):
 
     def _init_db_uri(self):
         try:
-            self.db_uri = json.loads(
-                os.environ['VCAP_SERVICES'])['postgres'][0]['credentials']['uri']
+            self.db_uri = json.loads(os.environ["VCAP_SERVICES"])["postgres"][0]["credentials"]["uri"]
         except KeyError as e:
             msg = str(e)
             logging.error(msg)
@@ -91,7 +92,7 @@ class DbQueryScaler(BaseScaler):
                     return items_count
         except psycopg2.OperationalError:
             # if there is exceptional load we might have run out of connections. try again in sixty seconds.
-            logging.warning('Could not connect to database', exc_info=True)
+            logging.warning("Could not connect to database", exc_info=True)
             self.last_db_error = datetime.utcnow()
 
             # return 0 so that autoscaler can continue to look at other metrics.

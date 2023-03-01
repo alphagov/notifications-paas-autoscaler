@@ -67,6 +67,14 @@ APPS:
           weekends:
             - 08:00-23:00
 
+  - name: notify-delivery-worker-sender-letters
+    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
+    max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
+    scalers:
+      - type: SqsScaler
+        queues: [send-letter-tasks]
+        threshold: 250
+
   - name: notify-delivery-worker-jobs
     min_instances: {{ MIN_INSTANCE_COUNT_JOBS }}
     max_instances: {{ MAX_INSTANCE_COUNT_JOBS }}

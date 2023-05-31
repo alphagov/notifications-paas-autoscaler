@@ -114,14 +114,6 @@ APPS:
         queues:  [research-mode-tasks]
         threshold: 250
 
-  - name: notify-delivery-worker-priority
-    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
-    max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
-    scalers:
-      - type: SqsScaler
-        queues:  [priority-tasks]
-        threshold: 250
-
   - name: notify-delivery-worker-periodic
     min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
     max_instances: {{ MAX_INSTANCE_COUNT_LOW }}

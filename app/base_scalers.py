@@ -63,6 +63,9 @@ class DbQueryScaler(BaseScaler):
         self.last_db_error = datetime.min
 
     def _init_db_uri(self):
+        if "SQLALCHEMY_DATABASE_URI" in os.environ:
+            self.db_uri = os.environ["SQLALCHEMY_DATABASE_URI"].replace("postgresql://", "postgres://")
+            return
         try:
             self.db_uri = json.loads(os.environ["VCAP_SERVICES"])["postgres"][0]["credentials"]["uri"]
         except KeyError as e:

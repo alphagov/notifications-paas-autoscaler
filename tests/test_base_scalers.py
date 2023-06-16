@@ -121,3 +121,14 @@ class TestDbQueryScaler:
         self.db_query_scaler.run_query()
 
         assert mock_db_connection.called is True
+
+
+@freeze_time("2018-01-01 12:00")
+class TestDbQueryScalerWithFixedCredentials:
+    def setup_method(self, method):
+        with patch.dict(os.environ, {"SQLALCHEMY_DATABASE_URI": "postgresql://test-db-uri"}):
+            self.db_query_scaler = DbQueryScaler(app_name, min_instances, max_instances)
+            self.db_query_scaler.query = "foo"
+
+    def test_db_uri_is_loaded(self):
+        assert self.db_query_scaler.db_uri == "postgres://test-db-uri"

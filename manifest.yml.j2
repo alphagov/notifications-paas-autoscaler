@@ -17,6 +17,9 @@ applications:
       AWS_SECRET_ACCESS_KEY: {{ aws_secret_access_key }}
       CF_USERNAME: {{ cf_username }}
       CF_PASSWORD: {{ cf_password }}
+      {% if sqlalchemy_database_uri is defined %}
+      SQLALCHEMY_DATABASE_URI: '{{ sqlalchemy_database_uri }}'
+      {% endif %}
     services:
       - notify-db
       - logit-ssl-syslog-drain

@@ -12,15 +12,15 @@ async-timeout==4.0.2
     # via aiohttp
 attrs==21.4.0
     # via aiohttp
-awscli==1.22.90
+awscli==1.29.7
     # via notifications-utils
 bleach==4.1.0
     # via notifications-utils
-boto3==1.21.35
+boto3==1.28.7
     # via
     #   -r requirements.in
     #   notifications-utils
-botocore==1.24.35
+botocore==1.31.7
     # via
     #   awscli
     #   boto3
@@ -37,7 +37,7 @@ charset-normalizer==2.0.12
     #   requests
 click==8.1.2
     # via flask
-cloudfoundry-client==1.25.0
+cloudfoundry-client==1.35.2
     # via -r requirements.in
 colorama==0.4.3
     # via awscli
@@ -87,7 +87,7 @@ multidict==6.0.2
     #   yarl
 notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@55.1.2
     # via -r requirements.in
-oauth2-client==1.2.1
+oauth2-client==1.4.2
     # via cloudfoundry-client
 orderedset==2.0.3
     # via notifications-utils
@@ -97,7 +97,7 @@ packaging==21.3
     #   redis
 phonenumbers==8.12.46
     # via notifications-utils
-polling2==0.4.6
+polling2==0.5.0
     # via cloudfoundry-client
 protobuf==3.20.2
     # via cloudfoundry-client
@@ -119,7 +119,7 @@ pytz==2022.1
     # via
     #   -r requirements.in
     #   notifications-utils
-pyyaml==5.4.1
+pyyaml==6.0.1
     # via
     #   -r requirements.in
     #   awscli
@@ -137,7 +137,7 @@ requests==2.27.1
     #   oauth2-client
 rsa==4.7.2
     # via awscli
-s3transfer==0.5.2
+s3transfer==0.6.1
     # via
     #   awscli
     #   boto3
@@ -158,7 +158,7 @@ urllib3==1.26.9
     #   requests
 webencodings==0.5.1
     # via bleach
-websocket-client==0.54.0
+websocket-client==1.6.1
     # via cloudfoundry-client
 werkzeug==2.1.1
     # via flask

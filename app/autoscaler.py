@@ -16,7 +16,9 @@ from app.utils import get_statsd_client
 
 
 def _get_redis_url():
-    if "REDIS_URL" not in os.environ:
+    if "REDIS_URL" in os.environ:
+        return os.environ["REDIS_URL"]
+    elif "VCAP_SERVICES" in os.environ:
         try:
             return json.loads(os.environ["VCAP_SERVICES"])["redis"][0]["credentials"]["uri"]
         except Exception:

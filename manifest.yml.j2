@@ -9,6 +9,7 @@ applications:
       - route: notify-paas-autoscaler-{{ environment }}.cloudapps.digital
     instances: 2
     memory: 128M
+    stack: cflinuxfs4
     env:
       PYTHONUNBUFFERED: 1
       CONFIG_PATH: /home/vcap/app/config.yml

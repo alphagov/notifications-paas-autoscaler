@@ -21,8 +21,8 @@ applications:
       {% if sqlalchemy_database_uri is defined %}
       SQLALCHEMY_DATABASE_URI: '{{ sqlalchemy_database_uri }}'
       {% endif %}
-      {% if REDIS_URL is defined %}
-      REDIS_URL: '{{ REDIS_URL }}'
+      {% if redis_url is defined %}
+      REDIS_URL: '{{ redis_url }}'
       {% endif %}
     services:
       - notify-db

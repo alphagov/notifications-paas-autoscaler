@@ -28,6 +28,8 @@ preview:
 	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW: 2" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW_CELERY: 1" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW_CELERY: 2" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_PERIODIC: 1" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_PERIODIC: 1" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_RECEIPTS: 1" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_RECEIPTS: 2" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_SENDER: 1" >> data.yml
@@ -64,6 +66,8 @@ staging:
 	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW: 4" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW_CELERY: 4" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW_CELERY: 20" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_PERIODIC: 2" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_PERIODIC: 5" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_RECEIPTS: 4" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_RECEIPTS: 20" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_SENDER: 4" >> data.yml
@@ -100,6 +104,8 @@ production:
 	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW: 4" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW_CELERY: 4" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW_CELERY: 35" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_PERIODIC: 6" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_PERIODIC: 9" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_RECEIPTS: 4" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_RECEIPTS: 50" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_SENDER: 18" >> data.yml
@@ -171,6 +177,8 @@ test-data:
 	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW: 20" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_TEMPLATE_PREVIEW_CELERY: 4" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_TEMPLATE_PREVIEW_CELERY: 20" >> data.yml
+	@echo "MIN_INSTANCE_COUNT_PERIODIC: 6" >> data.yml
+	@echo "MAX_INSTANCE_COUNT_PERIODIC: 9" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_RECEIPTS: 4" >> data.yml
 	@echo "MAX_INSTANCE_COUNT_RECEIPTS: 20" >> data.yml
 	@echo "MIN_INSTANCE_COUNT_SENDER: 4" >> data.yml

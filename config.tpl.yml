@@ -115,8 +115,8 @@ APPS:
         threshold: 250
 
   - name: notify-delivery-worker-periodic
-    min_instances: {{ MIN_INSTANCE_COUNT_LOW }}
-    max_instances: {{ MAX_INSTANCE_COUNT_LOW }}
+    min_instances: {{ MIN_INSTANCE_COUNT_PERIODIC }}
+    max_instances: {{ MAX_INSTANCE_COUNT_PERIODIC }}
     scalers:
       - type: SqsScaler
         queues:  [periodic-tasks]

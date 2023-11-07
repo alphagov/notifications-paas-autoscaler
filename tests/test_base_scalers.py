@@ -40,7 +40,6 @@ class TestBaseScaler:
     def test_get_desired_instance_count_is_normalized(
         self, min_instances, max_instances, desired_instances, expected_instances
     ):
-
         base_scaler = BaseScaler(app_name, min_instances, max_instances)
         with patch.object(base_scaler, "_get_desired_instance_count", side_effect=[desired_instances]):
             assert base_scaler.get_desired_instance_count() == expected_instances

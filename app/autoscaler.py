@@ -110,7 +110,6 @@ class Autoscaler:
 
         # scale down
         if desired < current:
-
             if self._recent_scale(app_name, "last_scale_up", self.cooldown_seconds_after_scale_up):
                 logging.debug("Skipping scale down due to recent scale up event")
                 return current

@@ -105,7 +105,7 @@ psycopg2-binary==2.9.3
     # via -r requirements.in
 pyasn1==0.4.8
     # via rsa
-pypdf2==1.27.5
+pypdf2==1.27.9
     # via notifications-utils
 pyproj==3.3.0
     # via notifications-utils
@@ -145,7 +145,6 @@ six==1.16.0
     # via
     #   bleach
     #   python-dateutil
-    #   websocket-client
 smartypants==2.0.1
     # via notifications-utils
 statsd==3.3.0

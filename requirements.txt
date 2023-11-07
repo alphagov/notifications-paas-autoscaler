@@ -145,12 +145,11 @@ six==1.16.0
     # via
     #   bleach
     #   python-dateutil
-    #   websocket-client
 smartypants==2.0.1
     # via notifications-utils
 statsd==3.3.0
     # via notifications-utils
-urllib3==1.26.9
+urllib3==1.26.18
     # via
     #   botocore
     #   requests

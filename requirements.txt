@@ -91,7 +91,7 @@ oauth2-client==1.4.2
     # via cloudfoundry-client
 orderedset==2.0.3
     # via notifications-utils
-packaging==21.3
+packaging==23.2
     # via
     #   bleach
     #   redis
@@ -105,8 +105,6 @@ psycopg2-binary==2.9.3
     # via -r requirements.in
 pyasn1==0.4.8
     # via rsa
-pyparsing==3.0.7
-    # via packaging
 pypdf2==1.27.5
     # via notifications-utils
 pyproj==3.3.0

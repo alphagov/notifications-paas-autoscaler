@@ -45,7 +45,7 @@ deprecated==1.2.13
     # via redis
 docutils==0.15.2
     # via awscli
-flask==2.1.1
+flask==2.2.5
     # via
     #   flask-redis
     #   notifications-utils
@@ -78,7 +78,9 @@ jmespath==1.0.0
     #   boto3
     #   botocore
 markupsafe==2.1.1
-    # via jinja2
+    # via
+    #   jinja2
+    #   werkzeug
 mistune==0.8.4
     # via notifications-utils
 multidict==6.0.2
@@ -157,7 +159,7 @@ webencodings==0.5.1
     # via bleach
 websocket-client==1.6.1
     # via cloudfoundry-client
-werkzeug==2.1.1
+werkzeug==2.2.3
     # via flask
 wrapt==1.14.0
     # via deprecated

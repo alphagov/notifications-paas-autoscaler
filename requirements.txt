@@ -127,7 +127,7 @@ redis==4.1.4
     # via
     #   -r requirements.in
     #   flask-redis
-requests==2.27.1
+requests==2.31.0
     # via
     #   cloudfoundry-client
     #   govuk-bank-holidays

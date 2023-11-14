@@ -1,5 +1,6 @@
 import datetime
 import logging
+import os
 from http import HTTPStatus
 from unittest.mock import Mock, patch
 
@@ -209,6 +210,7 @@ scale_factor: 0.8
         mock_paas_client = mocker.patch("app.autoscaler.PaasClient")
         mocker.patch("app.autoscaler.Redis", fakeredis.FakeRedis)
         mock_get_statsd_client = mocker.patch("app.autoscaler.get_statsd_client")
+        mocker.patch.dict(os.environ, {"SQLALCHEMY_DATABASE_URI": "test-db-uri"})
 
         mock_paas_client.return_value.get_paas_apps.return_value = {
             app_name: {"name": app_name, "instances": 5, "guid": app_name + "-guid"},

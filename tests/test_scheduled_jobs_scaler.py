@@ -1,4 +1,5 @@
-from unittest.mock import Mock
+import os
+from unittest.mock import Mock, patch
 
 from app.scheduled_jobs_scaler import ScheduledJobsScaler
 
@@ -12,7 +13,8 @@ class TestScheduledJobsScaler:
         input_attrs = {
             "threshold": 1500,
         }
-        scheduled_job_scaler = ScheduledJobsScaler(app_name, min_instances, max_instances, **input_attrs)
+        with patch.dict(os.environ, {"SQLALCHEMY_DATABASE_URI": "test-db-uri"}):
+            scheduled_job_scaler = ScheduledJobsScaler(app_name, min_instances, max_instances, **input_attrs)
 
         assert scheduled_job_scaler.app_name == app_name
         assert scheduled_job_scaler.min_instances == min_instances
@@ -32,7 +34,8 @@ class TestScheduledJobsScaler:
         input_attrs = {
             "threshold": 1500,
         }
-        scheduled_job_scaler = ScheduledJobsScaler(app_name, min_instances, max_instances, **input_attrs)
+        with patch.dict(os.environ, {"SQLALCHEMY_DATABASE_URI": "test-db-uri"}):
+            scheduled_job_scaler = ScheduledJobsScaler(app_name, min_instances, max_instances, **input_attrs)
         scheduled_job_scaler.run_query = Mock(return_value=10000)
 
         # 10k items * 0.3 = 3k => 2 instances

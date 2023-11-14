@@ -1,4 +1,3 @@
-import json
 import os
 from datetime import datetime, timedelta
 from unittest.mock import patch
@@ -89,8 +88,7 @@ def mock_db_connection():
 @freeze_time("2018-01-01 12:00")
 class TestDbQueryScaler:
     def setup_method(self, method):
-        vcap_string = json.dumps({"postgres": [{"credentials": {"uri": "test-db-uri"}}]})
-        with patch.dict(os.environ, {"VCAP_SERVICES": vcap_string}):
+        with patch.dict(os.environ, {"SQLALCHEMY_DATABASE_URI": "test-db-uri"}):
             self.db_query_scaler = DbQueryScaler(app_name, min_instances, max_instances)
             self.db_query_scaler.query = "foo"
 

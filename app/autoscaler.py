@@ -1,5 +1,4 @@
 import datetime
-import json
 import logging
 import os
 import sched
@@ -18,14 +17,6 @@ from app.utils import get_statsd_client
 def _get_redis_url():
     if "REDIS_URL" in os.environ:
         return os.environ["REDIS_URL"]
-    elif "VCAP_SERVICES" in os.environ:
-        try:
-            return json.loads(os.environ["VCAP_SERVICES"])["redis"][0]["credentials"]["uri"]
-        except Exception:
-            logging.exception(
-                "Could not find notify-redis credentials. "
-                "Ensure the app is running on paas and bound to the redis service."
-            )
     return "redis://redis.local"
 
 

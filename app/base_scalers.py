@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 from datetime import datetime, timedelta
@@ -63,15 +62,8 @@ class DbQueryScaler(BaseScaler):
         self.last_db_error = datetime.min
 
     def _init_db_uri(self):
-        if "SQLALCHEMY_DATABASE_URI" in os.environ:
-            self.db_uri = os.environ["SQLALCHEMY_DATABASE_URI"].replace("postgresql://", "postgres://")
-            return
-        try:
-            self.db_uri = json.loads(os.environ["VCAP_SERVICES"])["postgres"][0]["credentials"]["uri"]
-        except KeyError as e:
-            msg = str(e)
-            logging.error(msg)
-            self.db_uri = None
+        self.db_uri = os.environ["SQLALCHEMY_DATABASE_URI"].replace("postgresql://", "postgres://")
+        return
 
     def run_query(self):
         if datetime.utcnow() - self.last_db_error < self.DB_CONNECTION_TIMEOUT:

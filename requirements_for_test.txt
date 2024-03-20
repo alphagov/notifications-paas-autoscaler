@@ -7,6 +7,6 @@ pytest-cov==3.0.0
 pytest-mock==3.7.0
 pytest-randomly==3.11.0
 pytest==7.1.1
-black==23.10.1  # Also update `.pre-commit-config.yaml` if this changes
+black==24.3.0  # Also update `.pre-commit-config.yaml` if this changes
 
 -r requirements.txt
